@@ -35,7 +35,7 @@ renderer.setPixelRatio(pixelCap());
 renderer.setSize(window.innerWidth, window.innerHeight, false);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
+renderer.toneMappingExposure = 0.92;
 renderer.setClearColor(0x0c0a08, 1);
 renderer.domElement.style.pointerEvents = 'none';
 
@@ -190,33 +190,57 @@ function makeMarble() {
 const wood = makeWood();
 const marble = makeMarble();
 
-// Height / normal from shared procedural bumps
-function makeHeightNormal(size = 256) {
+// Height / normal: shared regular grid of round studs (~10 across)
+function makeHeightNormal(size = 512) {
   const heightData = new Float32Array(size * size);
+  const cols = 10;
+  const rows = 10;
+  const cell = 1 / cols;
+  const radius = cell * 0.38;
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
-      const u = x / size;
-      const v = y / size;
-      const bumps =
-        Math.sin(u * Math.PI * 8) * Math.sin(v * Math.PI * 8) * 0.45 +
-        fbm(u * 6, v * 6, 3) * 0.55;
-      heightData[y * size + x] = bumps;
+      const u = (x + 0.5) / size;
+      const v = (y + 0.5) / size;
+      // nearest cell center (tileable)
+      const cx = (Math.floor(u * cols) + 0.5) * cell;
+      const cy = (Math.floor(v * rows) + 0.5) * cell;
+      let dx = u - cx;
+      let dy = v - cy;
+      // wrap-aware shortest delta
+      if (dx > 0.5) dx -= 1; if (dx < -0.5) dx += 1;
+      if (dy > 0.5) dy -= 1; if (dy < -0.5) dy += 1;
+      const d = Math.hypot(dx, dy);
+      let h = 0.42; // base plateau
+      if (d < radius) {
+        const t = 1 - d / radius;
+        // raised round stud with soft rim
+        const dome = t * t * (3 - 2 * t);
+        h = 0.42 + dome * 0.58;
+      }
+      heightData[y * size + x] = h;
     }
   }
+  // mean for displacement bias (keep average radius matched to left)
+  let sum = 0;
+  for (let i = 0; i < heightData.length; i++) sum += heightData[i];
+  const mean = sum / heightData.length;
+
   const height = canvasTex((ctx, s) => {
     const img = ctx.createImageData(s, s);
     for (let i = 0; i < s * s; i++) {
-      const v = Math.floor(THREE.MathUtils.clamp(heightData[i] * 0.5 + 0.5, 0, 1) * 255);
+      const v = Math.floor(THREE.MathUtils.clamp(heightData[i], 0, 1) * 255);
       img.data[i * 4] = img.data[i * 4 + 1] = img.data[i * 4 + 2] = v;
       img.data[i * 4 + 3] = 255;
     }
     ctx.putImageData(img, 0, 0);
   }, size);
   height.tex.colorSpace = THREE.NoColorSpace;
+  height.tex.minFilter = THREE.LinearFilter;
+  height.tex.magFilter = THREE.LinearFilter;
 
   const normal = canvasTex((ctx, s) => {
     const img = ctx.createImageData(s, s);
-    const strength = 4;
+    const strength = 12; // strong slopes so bumps read under raking light
     for (let y = 0; y < s; y++) {
       for (let x = 0; x < s; x++) {
         const hL = heightData[y * s + ((x - 1 + s) % s)];
@@ -237,10 +261,10 @@ function makeHeightNormal(size = 256) {
     ctx.putImageData(img, 0, 0);
   }, size);
   normal.tex.colorSpace = THREE.NoColorSpace;
-  return { height, normal, heightData, size };
+  return { height, normal, heightData, size, mean };
 }
 
-const bumpMaps = makeHeightNormal(256);
+const bumpMaps = makeHeightNormal(512);
 
 function makeRustMask(size = 256) {
   return canvasTex((ctx, s) => {
@@ -273,8 +297,8 @@ function updateWeatherMaps(age, targets) {
     const m = mask[i * 4] / 255;
     // rust appears where mask < age (grows from dark valleys)
     const rust = THREE.MathUtils.clamp((age - m) / 0.35, 0, 1);
-    const cleanR = 180, cleanG = 190, cleanB = 200;
-    const rustR = 140, rustG = 70, rustB = 30;
+    const cleanR = 140, cleanG = 148, cleanB = 158;
+    const rustR = 130, rustG = 62, rustB = 28;
     const o = i * 4;
     albedo.data[o] = cleanR + (rustR - cleanR) * rust;
     albedo.data[o + 1] = cleanG + (rustG - cleanG) * rust;
@@ -382,8 +406,9 @@ const uvScene = makeScene(document.querySelector('[data-scene="uvs"]'), { bg: 0x
   flat.visible = false;
   uvScene.add(sphere, box, flat);
   addFloor(uvScene);
-  addLights(uvScene, 1.6);
+  addLights(uvScene, 1.15);
   uvScene.environment = envMap;
+  uvScene.environmentIntensity = 0.45;
   uvScene.userData.meshes = { sphere, box, mat, flat };
   uvScene.userData.update = (t, dt) => {
     if (!reducedMotion) {
@@ -402,7 +427,7 @@ const mapsScene = makeScene(document.querySelector('[data-scene="maps"]'), { bg:
     roughnessMap: wood.rough.tex,
     roughness: 1,
     metalness: 0.05,
-    envMapIntensity: 0.7,
+    envMapIntensity: 0.55,
   });
   const knot = new THREE.Mesh(new THREE.TorusKnotGeometry(0.7, 0.24, 160, 28), mat);
   const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 48, 32), mat);
@@ -410,7 +435,7 @@ const mapsScene = makeScene(document.querySelector('[data-scene="maps"]'), { bg:
   knot.position.set(-0.3, 0.1, 0);
   mapsScene.add(knot, sphere);
   addFloor(mapsScene);
-  const key = addLights(mapsScene, 2.0);
+  const key = addLights(mapsScene, 1.5);
   mapsScene.userData.meshes = { knot, sphere, mat, key, preset: 'wood' };
   mapsScene.userData.flags = { albedo: true, rough: true };
   mapsScene.userData.update = (t, dt) => {
@@ -433,101 +458,158 @@ function applyMapFlags() {
 }
 
 // Spec 03 normal vs displacement (centerpiece)
-const shared = { lightAngle: 0, orbitLight: true, silhouette: false, strength: 0.75 };
+const shared = { lightAngle: 0.4, orbitLight: true, silhouette: false, strength: 0.85 };
+const CP_COLOR = 0xb86a3c; // terracotta / copper mid-tone
+const CP_RADIUS = 0.72;
+const CP_DISP_MAX = 0.11; // world units at strength=1
 
-const normalScene = makeScene(document.querySelector('[data-scene="normal"]'), { bg: 0x15120f, camZ: 3.0 });
+function setupCenterpieceLights(scene) {
+  // Dim ambient so raking key can cast bump shadows
+  const hemi = new THREE.HemisphereLight(0x6a7a90, 0x2a1810, 0.28);
+  scene.add(hemi);
+  const key = new THREE.DirectionalLight(0xffe2c4, 2.6);
+  key.position.set(2.4, 0.45, 1.2);
+  scene.add(key);
+  const fill = new THREE.DirectionalLight(0x88aacc, 0.35);
+  fill.position.set(-2.0, 0.8, -1.0);
+  scene.add(fill);
+  const rim = new THREE.DirectionalLight(0xfff0e0, 0.9);
+  rim.position.set(-1.2, 0.6, -2.4);
+  scene.add(rim);
+  const bulb = new THREE.Mesh(
+    new THREE.SphereGeometry(0.08, 12, 10),
+    new THREE.MeshBasicMaterial({ color: 0xffc878 })
+  );
+  scene.add(bulb);
+  return { key, fill, rim, bulb, hemi };
+}
+
+function updateCenterpieceLight(pack, mesh) {
+  const ang = shared.lightAngle;
+  // Low raking orbit — grazes the equator so bumps catch light/shadow
+  const x = Math.cos(ang) * 2.6;
+  const z = Math.sin(ang) * 2.6;
+  const y = 0.35 + Math.sin(ang * 0.5) * 0.15;
+  pack.bulb.position.set(x, y, z);
+  pack.key.position.set(x, y, z);
+  pack.rim.position.set(-x * 0.6, 0.7, -z * 0.6);
+  if (!reducedMotion) mesh.rotation.y += 0.012; // slow turn; overridden with dt below
+}
+
+const normalScene = makeScene(document.querySelector('[data-scene="normal"]'), { bg: 0x1a1511, camZ: 3.55 });
 {
   normalScene.environment = envMap;
-  const geo = new THREE.SphereGeometry(0.95, 64, 48);
+  normalScene.environmentIntensity = 0.18;
+  normalScene.userData.camera.position.set(0, 0.08, 3.55);
+  normalScene.userData.controls.target.set(0, 0, 0);
+  normalScene.userData.controls.update();
+  const geo = new THREE.SphereGeometry(CP_RADIUS, 96, 72);
   const mat = new THREE.MeshStandardMaterial({
-    color: 0xc8d0dc,
-    metalness: 0.35,
-    roughness: 0.45,
+    color: CP_COLOR,
+    metalness: 0.22,
+    roughness: 0.48,
     normalMap: bumpMaps.normal.tex,
-    normalScale: new THREE.Vector2(0.75, 0.75),
-    envMapIntensity: 0.9,
+    normalScale: new THREE.Vector2(shared.strength * 1.35, shared.strength * 1.35),
+    envMapIntensity: 0.22,
   });
   const mesh = new THREE.Mesh(geo, mat);
   normalScene.add(mesh);
-  addFloor(normalScene, -1.15);
-  const key = addLights(normalScene, 2.8);
-  const bulb = new THREE.Mesh(
-    new THREE.SphereGeometry(0.1, 12, 10),
-    new THREE.MeshBasicMaterial({ color: 0xffcc66 })
-  );
-  normalScene.add(bulb);
-  normalScene.userData.meshes = { mesh, mat, key, bulb };
+  // No floor — keeps silhouette clean and avoids clipping clutter
+  const lights = setupCenterpieceLights(normalScene);
+  normalScene.userData.meshes = { mesh, mat, ...lights };
   normalScene.userData.update = (t, dt) => {
-    if (!reducedMotion) mesh.rotation.y += dt * 0.15;
+    if (!reducedMotion) mesh.rotation.y += dt * 0.18;
     const ang = shared.lightAngle;
-    const x = Math.cos(ang) * 2.2;
-    const z = Math.sin(ang) * 2.2;
-    const y = 1.35;
-    bulb.position.set(x, y, z);
-    key.position.set(x, y, z);
+    const x = Math.cos(ang) * 2.6;
+    const z = Math.sin(ang) * 2.6;
+    const y = 0.35 + Math.sin(ang * 0.5) * 0.15;
+    lights.bulb.position.set(x, y, z);
+    lights.key.position.set(x, y, z);
+    lights.rim.position.set(-x * 0.55, 0.65, -z * 0.55);
+    lights.bulb.visible = !shared.silhouette;
   };
 }
 
-const displaceScene = makeScene(document.querySelector('[data-scene="displace"]'), { bg: 0x15120f, camZ: 3.0 });
+const displaceScene = makeScene(document.querySelector('[data-scene="displace"]'), { bg: 0x1a1511, camZ: 3.55 });
 {
   displaceScene.environment = envMap;
-  // Dense sphere so displacementMap has vertices to move (silhouette changes).
-  const geo = new THREE.SphereGeometry(0.95, 128, 96);
+  displaceScene.environmentIntensity = 0.18;
+  displaceScene.userData.camera.position.set(0, 0.08, 3.55);
+  displaceScene.userData.controls.target.set(0, 0, 0);
+  displaceScene.userData.controls.update();
+  // Dense mesh so studs stay crisp, not lumpy
+  const geo = new THREE.SphereGeometry(CP_RADIUS, 192, 128);
+  const dispScale = CP_DISP_MAX * shared.strength;
   const mat = new THREE.MeshStandardMaterial({
-    color: 0xc8d0dc,
-    metalness: 0.35,
-    roughness: 0.45,
-    envMapIntensity: 0.9,
+    color: CP_COLOR,
+    metalness: 0.22,
+    roughness: 0.48,
+    envMapIntensity: 0.22,
     displacementMap: bumpMaps.height.tex,
-    displacementScale: 0.22 * 0.75,
-    displacementBias: -0.02,
+    displacementScale: dispScale,
+    // Bias cancels mean height so average radius matches the left sphere
+    displacementBias: -bumpMaps.mean * dispScale,
   });
   function applyDisplace(strength) {
-    mat.displacementScale = 0.22 * strength;
+    const s = CP_DISP_MAX * strength;
+    mat.displacementScale = s;
+    mat.displacementBias = -bumpMaps.mean * s;
   }
   const mesh = new THREE.Mesh(geo, mat);
   displaceScene.add(mesh);
-  addFloor(displaceScene, -1.15);
-  const key = addLights(displaceScene, 2.8);
-  const bulb = new THREE.Mesh(
-    new THREE.SphereGeometry(0.1, 12, 10),
-    new THREE.MeshBasicMaterial({ color: 0xffcc66 })
-  );
-  displaceScene.add(bulb);
-  displaceScene.userData.meshes = { mesh, mat, key, bulb, applyDisplace, geo };
+  const lights = setupCenterpieceLights(displaceScene);
+  displaceScene.userData.meshes = { mesh, mat, applyDisplace, geo, ...lights };
   displaceScene.userData.update = (t, dt) => {
-    if (!reducedMotion) mesh.rotation.y += dt * 0.15;
+    if (!reducedMotion) mesh.rotation.y += dt * 0.18;
     const ang = shared.lightAngle;
-    const x = Math.cos(ang) * 2.2;
-    const z = Math.sin(ang) * 2.2;
-    const y = 1.35;
-    bulb.position.set(x, y, z);
-    key.position.set(x, y, z);
+    const x = Math.cos(ang) * 2.6;
+    const z = Math.sin(ang) * 2.6;
+    const y = 0.35 + Math.sin(ang * 0.5) * 0.15;
+    lights.bulb.position.set(x, y, z);
+    lights.key.position.set(x, y, z);
+    lights.rim.position.set(-x * 0.55, 0.65, -z * 0.55);
+    lights.bulb.visible = !shared.silhouette;
   };
 }
 
 function setSilhouette(on) {
   shared.silhouette = on;
   for (const sc of [normalScene, displaceScene]) {
-    const { mat } = sc.userData.meshes;
+    const { mat, hemi, key, fill, rim } = sc.userData.meshes;
     if (on) {
-      mat.color.set(0x000000);
+      mat.color.set(0x14110e);
       mat.metalness = 0;
       mat.roughness = 1;
       mat.envMapIntensity = 0;
       mat.normalMap = null;
-      // Keep displacement so silhouette still shows real bumps on the right.
-      sc.background = new THREE.Color(0xe8dfd0);
+      // Flat unlit look via zero lights + dark emissive-ish through basic-like shading
+      if (hemi) hemi.intensity = 0;
+      if (key) key.intensity = 0;
+      if (fill) fill.intensity = 0;
+      if (rim) rim.intensity = 0;
+      mat.emissive = new THREE.Color(0x0c0a08);
+      mat.emissiveIntensity = 1;
+      sc.background = new THREE.Color(0xf0e6d8);
+      sc.environment = null;
     } else {
-      mat.color.set(0xc8d0dc);
-      mat.metalness = 0.35;
-      mat.roughness = 0.45;
-      mat.envMapIntensity = 0.9;
+      mat.color.set(CP_COLOR);
+      mat.metalness = 0.22;
+      mat.roughness = 0.48;
+      mat.envMapIntensity = 0.22;
+      mat.emissive = new THREE.Color(0x000000);
+      mat.emissiveIntensity = 0;
+      if (hemi) hemi.intensity = 0.28;
+      if (key) key.intensity = 2.6;
+      if (fill) fill.intensity = 0.35;
+      if (rim) rim.intensity = 0.9;
       if (sc === normalScene) {
         mat.normalMap = bumpMaps.normal.tex;
-        mat.normalScale.set(shared.strength, shared.strength);
+        const ns = shared.strength * 1.35;
+        mat.normalScale.set(ns, ns);
       }
-      sc.background = new THREE.Color(0x15120f);
+      sc.background = new THREE.Color(0x1a1511);
+      sc.environment = envMap;
+      sc.environmentIntensity = 0.18;
     }
     mat.needsUpdate = true;
   }
@@ -543,7 +625,7 @@ const weatherScene = makeScene(document.querySelector('[data-scene="weather"]'),
     metalnessMap: weather.metalTex,
     roughness: 1,
     metalness: 1,
-    envMapIntensity: 1.0,
+    envMapIntensity: 0.55,
   });
   const knot = new THREE.Mesh(new THREE.TorusKnotGeometry(0.72, 0.24, 180, 32), mat);
   const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.52, 48, 32), mat);
@@ -551,7 +633,7 @@ const weatherScene = makeScene(document.querySelector('[data-scene="weather"]'),
   knot.position.set(-0.3, 0.12, 0);
   weatherScene.add(knot, sphere);
   addFloor(weatherScene);
-  addLights(weatherScene, 2.2);
+  addLights(weatherScene, 1.4);
   weatherScene.userData.meshes = { knot, sphere, mat };
   weatherScene.userData.update = (t, dt) => {
     if (!reducedMotion) {
@@ -621,7 +703,10 @@ function onStrength() {
   shared.strength = Number(strengthEl.value);
   strengthOut.textContent = shared.strength.toFixed(2);
   const nMat = normalScene.userData.meshes.mat;
-  if (!shared.silhouette) nMat.normalScale.set(shared.strength, shared.strength);
+  if (!shared.silhouette) {
+    const ns = shared.strength * 1.35;
+    nMat.normalScale.set(ns, ns);
+  }
   displaceScene.userData.meshes.applyDisplace(shared.strength);
 }
 strengthEl.addEventListener('input', onStrength);

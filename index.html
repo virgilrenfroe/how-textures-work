@@ -7,23 +7,23 @@
   <title>How Textures Work · Virgil Renfroe</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --ink: #0c0a08;
+      --ink: #050505;
       --paper: #f4efe6;
       --cream: #e8dfd0;
       --mute: rgba(244, 239, 230, 0.58);
       --dim: rgba(244, 239, 230, 0.28);
-      --accent: #ff5a1f;
-      --accent2: #c8f542;
-      --steel: #7ec8ff;
+      --accent: #3dff9a;
+      --accent2: #ffb020;
+      --steel: #8ab4ff;
       --line: rgba(244, 239, 230, 0.14);
-      --card: #16120e;
-      --placard: #1a1612;
-      --mono: "Space Mono", ui-monospace, monospace;
-      --display: "Bricolage Grotesque", sans-serif;
-      --body: "Instrument Sans", sans-serif;
+      --card: #101010;
+      --placard: #0e0e0e;
+      --mono: "JetBrains Mono", ui-monospace, monospace;
+      --display: "Space Grotesk", sans-serif;
+      --body: "Gabarito", sans-serif;
     }
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
@@ -79,10 +79,10 @@
     }
     .hero h1 {
       font-family: var(--display);
-      font-weight: 800;
-      font-size: clamp(3.2rem, 11vw, 8.5rem);
-      line-height: 0.88;
-      letter-spacing: -0.04em;
+      font-weight: 500;
+      font-size: clamp(3.4rem, 11.5vw, 7.6rem);
+      line-height: 0.9;
+      letter-spacing: -0.045em;
       margin: 0 0 1.25rem;
       max-width: 11ch;
     }
@@ -254,9 +254,9 @@
     }
     .specimen-title {
       font-family: var(--display);
-      font-weight: 700;
-      font-size: clamp(1.6rem, 3.5vw, 2.4rem);
-      letter-spacing: -0.03em;
+      font-weight: 500;
+      font-size: clamp(1.7rem, 3.6vw, 2.55rem);
+      letter-spacing: -0.035em;
       line-height: 1.05;
       margin: 0;
     }
@@ -340,8 +340,9 @@
     }
     .teachers h2 {
       font-family: var(--display);
-      font-size: clamp(2rem, 5vw, 3.4rem);
-      letter-spacing: -0.03em;
+      font-weight: 500;
+      font-size: clamp(2.1rem, 5.2vw, 3.5rem);
+      letter-spacing: -0.04em;
       line-height: 1;
       margin: 0 0 0.75rem;
     }
@@ -474,6 +475,76 @@
       border: 1px solid var(--line);
     }
 
+
+    /* Series craft — Ruben-energy principles (not a copy) */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 50;
+      opacity: 0.045;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      mix-blend-mode: overlay;
+    }
+    .hero-kicker::before {
+      content: "";
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      margin-right: 0.55rem;
+      border-radius: 50%;
+      background: var(--accent2);
+      box-shadow: 0 0 10px var(--accent2);
+      vertical-align: 1px;
+    }
+    .chip {
+      border-radius: 999px !important;
+      padding: 0.5rem 0.95rem !important;
+      letter-spacing: 0.08em !important;
+      transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    }
+    .chip:hover {
+      transform: translateY(-1px);
+      border-color: var(--accent);
+    }
+    .chip:active { transform: translateY(0); }
+    .try {
+      border-radius: 14px;
+    }
+    .hero-diagram {
+      border-radius: 16px;
+    }
+    .teach-card {
+      border-radius: 14px;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .teach-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .series-nav a {
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      border-bottom: 1px solid var(--accent);
+      padding: 0.45rem 0.85rem;
+      transition: background 0.18s ease, color 0.18s ease;
+    }
+    .series-nav a:hover {
+      background: var(--accent);
+      color: #0a0a0a;
+      border-color: var(--accent);
+    }
+    .view-label {
+      border-radius: 999px;
+    }
+    .ctrl input[type="range"] {
+      height: 1.25rem;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .chip, .teach-card, .series-nav a { transition: none !important; }
+    }
+
   </style>
   <script type="importmap">
   {
@@ -602,8 +673,8 @@
           </div>
           <div class="ctrls" style="margin-top:1rem">
             <label class="ctrl">Bump strength
-              <input id="nd-strength" type="range" min="0" max="1" step="0.01" value="0.75" />
-              <output id="nd-strength-out" for="nd-strength">0.75</output>
+              <input id="nd-strength" type="range" min="0" max="1" step="0.01" value="0.85" />
+              <output id="nd-strength-out" for="nd-strength">0.85</output>
             </label>
           </div>
         </div>
