@@ -545,6 +545,105 @@
       .chip, .teach-card, .series-nav a { transition: none !important; }
     }
 
+
+    .ticker {
+      position: relative;
+      z-index: 6;
+      overflow: hidden;
+      border-bottom: 1px solid var(--line);
+      background: #000;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      pointer-events: none;
+    }
+    .ticker-track {
+      display: flex;
+      width: max-content;
+      gap: 0;
+      animation: ticker-scroll 42s linear infinite;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      white-space: nowrap;
+    }
+    .ticker-track span { padding: 0 1.25rem; }
+    .ticker-track span::before {
+      content: "✦";
+      margin-right: 1.25rem;
+      color: var(--accent);
+      opacity: 0.7;
+    }
+    @keyframes ticker-scroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ticker-track { animation: none; }
+    }
+    .hero {
+      padding-top: clamp(2rem, 5vw, 3.5rem);
+      align-items: stretch !important;
+      grid-template-columns: minmax(260px, 0.92fr) minmax(0, 1.25fr) !important;
+      overflow: visible;
+    }
+    .hero-stage {
+      position: relative;
+      min-height: min(78vh, 820px);
+      margin-right: clamp(-1.5rem, -8vw, -5rem);
+    }
+    .hero-stage .view[data-scene="hero"] {
+      position: absolute;
+      inset: -4% -18% 0 -8%;
+      min-height: 100%;
+      width: auto;
+      height: auto;
+      touch-action: none;
+      cursor: ew-resize;
+    }
+    .hero-aside {
+      position: absolute;
+      top: 0;
+      right: clamp(0.5rem, 3vw, 1.5rem);
+      left: auto;
+      width: min(100%, 340px);
+      z-index: 4;
+      pointer-events: none;
+      padding-top: 0 !important;
+      justify-content: flex-start !important;
+    }
+    .hero-aside .hero-diagram,
+    .hero-aside .scroll-cue { pointer-events: auto; }
+    .hero-aside .scroll-cue { margin-top: 1rem; }
+    .series-nav {
+      top: 40px !important;
+    }
+    @media (max-width: 860px) {
+      .hero {
+        grid-template-columns: 1fr !important;
+      }
+      .hero-stage {
+        order: -1;
+        min-height: 48vh;
+        margin-right: -1.25rem;
+        margin-left: -1.25rem;
+        margin-bottom: 0.25rem;
+      }
+      .hero-stage .view[data-scene="hero"] {
+        inset: -2% -12% -8% -12%;
+        opacity: 0.92;
+      }
+      .hero-aside {
+        position: relative;
+        right: auto;
+        width: 100%;
+        margin-top: -2.5rem;
+      }
+      .series-nav { top: 36px !important; }
+    }
+
   </style>
   <script type="importmap">
   {
@@ -559,6 +658,21 @@
   <canvas id="c"></canvas>
   <div class="err" id="err"></div>
 
+
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track">
+      
+      <span>UV</span><span>ALBEDO</span><span>ROUGHNESS</span><span>NORMAL</span>
+      <span>DISPLACEMENT</span><span>OCCLUSION</span><span>WEATHERING</span><span>SEAMS</span>
+      <span>TILING</span><span>MIPMAPS</span><span>TANGENT</span><span>HEIGHT</span>
+
+      
+      <span>UV</span><span>ALBEDO</span><span>ROUGHNESS</span><span>NORMAL</span>
+      <span>DISPLACEMENT</span><span>OCCLUSION</span><span>WEATHERING</span><span>SEAMS</span>
+      <span>TILING</span><span>MIPMAPS</span><span>TANGENT</span><span>HEIGHT</span>
+
+    </div>
+  </div>
   <div class="content">
     <nav class="series-nav"><a href="https://how-surfaces-work-production.up.railway.app/">Series · Surfaces</a></nav>
     <header class="hero" id="top">
@@ -572,7 +686,9 @@
           <div>Core lesson <span>Normals fake · displacement moves</span></div>
         </div>
       </div>
-      <aside class="hero-aside">
+      <div class="hero-stage">
+        <div class="view" data-scene="hero" tabindex="0" aria-label="Hero specimen viewport"></div>
+        <aside class="hero-aside">
         <div class="hero-diagram" aria-label="Lesson map">
           <h2>What you will see</h2>
           <div class="diagram-rows">
@@ -586,6 +702,7 @@
         </div>
         <p class="scroll-cue"><a href="#s01">Enter the lab ↓</a></p>
       </aside>
+      </div>
     </header>
 
     <section class="specimen" id="s01">

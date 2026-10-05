@@ -45,6 +45,110 @@ const envMap = pmrem.fromScene(room, 0.04).texture;
 room.dispose?.();
 pmrem.dispose();
 
+/* —— Hero stylized post (one canvas, scissor + small RT) —— */
+const HERO_RT_SIZE = 320;
+function makeHeroPost(accentHex) {
+  const accent = new THREE.Color(accentHex);
+  const rt = new THREE.WebGLRenderTarget(HERO_RT_SIZE, HERO_RT_SIZE, {
+    minFilter: THREE.LinearFilter,
+    magFilter: THREE.LinearFilter,
+    type: THREE.UnsignedByteType,
+  });
+  rt.texture.colorSpace = THREE.SRGBColorSpace;
+  const postScene = new THREE.Scene();
+  const postCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const uniforms = {
+    tDiffuse: { value: rt.texture },
+    uAccent: { value: new THREE.Vector3(accent.r, accent.g, accent.b) },
+    uReveal: { value: 0.38 },
+    uCell: { value: 5.5 },
+    uTime: { value: 0 },
+    uRes: { value: new THREE.Vector2(HERO_RT_SIZE, HERO_RT_SIZE) },
+  };
+  const mat = new THREE.ShaderMaterial({
+    uniforms,
+    vertexShader: `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = vec4(position.xy, 0.0, 1.0);
+      }
+    `,
+    fragmentShader: `
+      precision highp float;
+      uniform sampler2D tDiffuse;
+      uniform vec3 uAccent;
+      uniform float uReveal;
+      uniform float uCell;
+      uniform float uTime;
+      uniform vec2 uRes;
+      varying vec2 vUv;
+
+      float glyph(vec2 p, float level) {
+        // Simple density glyphs via bars/dots (ASCII-adjacent, not a font atlas)
+        float d = 1.0;
+        if (level < 0.12) return 0.0;
+        if (level < 0.28) {
+          d = step(0.42, abs(p.x)) * step(abs(p.y), 0.12); // :
+        } else if (level < 0.45) {
+          d = 1.0 - smoothstep(0.18, 0.28, length(p)); // .
+        } else if (level < 0.62) {
+          d = step(abs(p.x), 0.1) + step(abs(p.y), 0.1); // +
+          d = clamp(d, 0.0, 1.0);
+        } else if (level < 0.8) {
+          d = step(abs(p.x), 0.12) + step(abs(p.y), 0.32) * step(abs(p.x), 0.32); // #
+          d = clamp(d, 0.0, 1.0);
+        } else {
+          d = 1.0 - smoothstep(0.34, 0.42, max(abs(p.x), abs(p.y))); // block
+        }
+        return clamp(d, 0.0, 1.0);
+      }
+
+      void main() {
+        vec4 src = texture2D(tDiffuse, vUv);
+        float lum = dot(src.rgb, vec3(0.299, 0.587, 0.114));
+        // Lift darks so terracotta / dark metals still print glyphs
+        lum = clamp(pow(lum, 0.62) * 1.55 + 0.08, 0.0, 1.0);
+        vec2 pix = vUv * uRes;
+        vec2 cell = floor(pix / uCell);
+        vec2 local = fract(pix / uCell) - 0.5;
+        float g = glyph(local, lum);
+        // Halftone underlay — denser fill like a data portrait
+        float rad = mix(0.08, 0.48, pow(lum, 0.75));
+        float dots = 1.0 - smoothstep(rad, rad + 0.05, length(local));
+        float mark = max(g * 0.95, dots * 0.75);
+        vec3 stylized = uAccent * (0.05 + mark * (0.55 + lum * 1.55));
+        stylized += uAccent * 0.06 * sin(cell.x * 0.7 + cell.y * 1.1 + uTime * 0.6);
+        // Soft vignette keeps energy on the form
+        float vig = smoothstep(1.15, 0.35, length(vUv - 0.5) * 1.35);
+        stylized *= 0.55 + 0.55 * vig;
+
+        // Soft vertical reveal sweep (true PBR to the right of the line)
+        float edge = 0.02;
+        float reveal = smoothstep(uReveal - edge, uReveal + edge, vUv.x);
+        // Thin scan line at the reveal edge
+        float scan = smoothstep(0.0, 0.01, abs(vUv.x - uReveal)) * smoothstep(0.035, 0.0, abs(vUv.x - uReveal));
+        vec3 col = mix(stylized, src.rgb, reveal);
+        col += uAccent * scan * 1.4;
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `,
+    depthTest: false,
+    depthWrite: false,
+  });
+  const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat);
+  postScene.add(quad);
+  return {
+    rt,
+    postScene,
+    postCam,
+    uniforms,
+    reveal: 0.38,
+    pointerX: 0.55,
+    dragging: false,
+  };
+}
+
 // —— Procedural textures ——
 function canvasTex(draw, size = 256) {
   const c = document.createElement('canvas');
@@ -387,6 +491,58 @@ function addFloor(scene, y = -1.05) {
 }
 
 // Spec 01 UVs
+
+// Hero specimen — studded sphere + stylized reveal
+const heroEl = document.querySelector('[data-scene="hero"]');
+if (!heroEl) throw new Error('Missing hero view [data-scene=hero]');
+const heroPost = makeHeroPost('#3dff9a');
+const heroScene = makeScene(heroEl, { bg: 0x050505, camZ: 3.05 });
+{
+  heroScene.background = new THREE.Color(0x050505);
+  heroScene.environment = envMap;
+  heroScene.environmentIntensity = 0.35;
+  const geo = new THREE.SphereGeometry(0.95, 160, 120);
+  const strength = 1.0;
+  const disp = 0.12 * strength;
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0xd4895a,
+    metalness: 0.55,
+    roughness: 0.32,
+    normalMap: bumpMaps.normal.tex,
+    normalScale: new THREE.Vector2(1.45, 1.45),
+    displacementMap: bumpMaps.height.tex,
+    displacementScale: disp,
+    displacementBias: -bumpMaps.mean * disp,
+    envMapIntensity: 0.85,
+  });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.scale.setScalar(1.45);
+  heroScene.add(mesh);
+  const hemi = new THREE.HemisphereLight(0xa8c4e0, 0x3a2010, 0.55);
+  heroScene.add(hemi);
+  const key = new THREE.DirectionalLight(0xfff0dc, 3.2);
+  key.position.set(2.4, 0.5, 1.4);
+  heroScene.add(key);
+  const rim = new THREE.DirectionalLight(0x88ffc8, 1.35);
+  rim.position.set(-2.0, 0.8, -2.0);
+  heroScene.add(rim);
+  const fill = new THREE.DirectionalLight(0xffffff, 0.9);
+  fill.position.set(-0.5, 2.2, 2.0);
+  heroScene.add(fill);
+  heroScene.userData.meshes = { mesh, mat, key };
+  heroScene.userData.heroPost = heroPost;
+  heroScene.userData.controls.enableZoom = false;
+  heroScene.userData.controls.enableRotate = false;
+  heroScene.userData.update = (t, dt) => {
+    if (!reducedMotion) {
+      mesh.rotation.y += dt * 0.22;
+      key.position.x = Math.cos(t * 0.55) * 2.5;
+      key.position.z = Math.sin(t * 0.55) * 2.0;
+      key.position.y = 0.35;
+    }
+  };
+}
+
 const uvScene = makeScene(document.querySelector('[data-scene="uvs"]'), { bg: 0x12100e });
 {
   const mat = new THREE.MeshStandardMaterial({
@@ -644,6 +800,36 @@ const weatherScene = makeScene(document.querySelector('[data-scene="weather"]'),
 }
 
 // —— UI ——
+
+// Hero reveal pointer + auto sweep
+{
+  const el = heroEl;
+  const post = heroPost;
+  const setFromClientX = (clientX) => {
+    const r = el.getBoundingClientRect();
+    if (r.width <= 0) return;
+    post.pointerX = Math.min(0.95, Math.max(0.05, (clientX - r.left) / r.width));
+    post.reveal = post.pointerX;
+  };
+  el.addEventListener('pointerdown', (e) => {
+    post.dragging = true;
+    el.setPointerCapture?.(e.pointerId);
+    setFromClientX(e.clientX);
+  });
+  el.addEventListener('pointermove', (e) => {
+    if (post.dragging || e.buttons) setFromClientX(e.clientX);
+    else if (!reducedMotion) {
+      const r = el.getBoundingClientRect();
+      if (r.width > 0 && e.clientY >= r.top && e.clientY <= r.bottom) {
+        const target = (e.clientX - r.left) / r.width;
+        post.reveal += (target - post.reveal) * 0.12;
+      }
+    }
+  });
+  el.addEventListener('pointerup', () => { post.dragging = false; });
+  el.addEventListener('pointerleave', () => { post.dragging = false; });
+}
+
 const flatBadge = document.getElementById('flat-badge');
 document.querySelectorAll('[data-uv]').forEach((btn) => {
   btn.addEventListener('click', () => {
@@ -784,7 +970,47 @@ function animate(now) {
     scene.userData.controls.update();
     renderer.setViewport(left, bottom, width, height);
     renderer.setScissor(left, bottom, width, height);
-    renderer.render(scene, camera);
+
+    const post = scene.userData.heroPost;
+    if (post) {
+      if (!post.dragging && !reducedMotion) {
+        post.reveal = 0.5 + Math.sin(now * 0.00045) * 0.28;
+      } else if (reducedMotion && !post.dragging) {
+        post.reveal = 0.42;
+      }
+      const aspect = Math.max(0.5, width / height);
+      const rtW = HERO_RT_SIZE;
+      const rtH = Math.max(96, Math.round(HERO_RT_SIZE / aspect));
+      if (post.rt.width !== rtW || post.rt.height !== rtH) {
+        post.rt.setSize(rtW, rtH);
+        post.uniforms.uRes.value.set(rtW, rtH);
+      }
+      // Render true PBR into small RT (ignore scissor for RT)
+      renderer.setScissorTest(false);
+      renderer.setViewport(0, 0, rtW, rtH);
+      const prevTone = renderer.toneMappingExposure;
+      renderer.setRenderTarget(post.rt);
+      renderer.clear();
+      camera.aspect = aspect;
+      camera.updateProjectionMatrix();
+      renderer.render(scene, camera);
+      renderer.setRenderTarget(null);
+      renderer.setScissorTest(true);
+      renderer.setViewport(left, bottom, width, height);
+      renderer.setScissor(left, bottom, width, height);
+      post.uniforms.uReveal.value = post.reveal;
+      post.uniforms.uTime.value = now * 0.001;
+      post.uniforms.uCell.value = Math.max(4.2, Math.min(9, width / 95));
+      const prevTM = renderer.toneMapping;
+      renderer.toneMapping = THREE.NoToneMapping;
+      renderer.autoClear = false;
+      renderer.render(post.postScene, post.postCam);
+      renderer.autoClear = true;
+      renderer.toneMapping = prevTM;
+      renderer.toneMappingExposure = prevTone;
+    } else {
+      renderer.render(scene, camera);
+    }
   }
 }
 
@@ -799,4 +1025,5 @@ window.__HTW = window.__HSW = {
   get frameCount() { return frameCount; },
   get reducedMotion() { return reducedMotion; },
   webglContexts: () => document.querySelectorAll('canvas#c').length,
+  heroPost,
 };
