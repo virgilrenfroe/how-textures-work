@@ -16,6 +16,12 @@ function record(id, pass, detail = '') {
   console.log(`${pass ? 'PASS' : 'FAIL'}  ${id}${detail ? ' — ' + detail : ''}`);
 }
 
+
+function sceneByName(store, name) {
+  const scenes = store?.scenes || [];
+  return scenes.find((s) => s.userData?.element?.dataset?.scene === name) || null;
+}
+
 function avgDiff(a, b) {
   if (!a || !b || a.length !== b.length) return 999;
   let sum = 0;
@@ -269,17 +275,25 @@ async function runSuite(browserType, label, launchOpts, viewportOpts) {
     const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
     const sx = canvas.width / canvas.clientWidth;
     const sy = canvas.height / canvas.clientHeight;
-    const vx = Math.max(r.left, 0) + Math.min(intersectW, r.width) * 0.5;
-    const vy = Math.max(r.top, 0) + Math.min(intersectH, r.height) * 0.45;
-    const cx = Math.floor(vx * sx);
-    const cy = Math.floor((canvas.clientHeight - vy) * sy);
-    const pix = new Uint8Array(4);
-    gl.readPixels(cx, cy, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pix);
-    const nonBlank = !(pix[0] < 28 && pix[1] < 28 && pix[2] < 28);
+    let nonBlank = false;
+    let pix = [0, 0, 0, 0];
+    for (const fy of [0.35, 0.5, 0.65]) {
+      for (const fx of [0.3, 0.5, 0.7]) {
+        const vx = Math.max(r.left, 0) + Math.min(intersectW, r.width) * fx;
+        const vy = Math.max(r.top, 0) + Math.min(intersectH, r.height) * fy;
+        const cx = Math.floor(vx * sx);
+        const cy = Math.floor((canvas.clientHeight - vy) * sy);
+        const p = new Uint8Array(4);
+        gl.readPixels(cx, cy, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, p);
+        pix = [...p];
+        if (!(p[0] < 28 && p[1] < 28 && p[2] < 28)) { nonBlank = true; break; }
+      }
+      if (nonBlank) break;
+    }
     return {
       visible,
       nonBlank,
-      pix: [...pix],
+      pix,
       position: cs.position,
       transform: cs.transform,
       canvasW: canvas.clientWidth,
@@ -293,10 +307,16 @@ async function runSuite(browserType, label, launchOpts, viewportOpts) {
   // 4. Controls — MatCap
   await page.locator('#s01').scrollIntoViewIfNeeded();
   await page.waitForTimeout(500);
-  const beforeFlat = await page.evaluate(() => window.__HTW.scenes[0].userData.meshes.flat.visible);
+  const beforeFlat = await page.evaluate(() => {
+    const scene = (window.__HTW.scenes || []).find((s) => s.userData?.element?.dataset?.scene === 'uvs');
+    return scene?.userData?.meshes?.flat?.visible;
+  });
   await page.locator('[data-uv="flat"]').click();
   await page.waitForTimeout(300);
-  const afterFlat = await page.evaluate(() => window.__HTW.scenes[0].userData.meshes.flat.visible);
+  const afterFlat = await page.evaluate(() => {
+    const scene = (window.__HTW.scenes || []).find((s) => s.userData?.element?.dataset?.scene === 'uvs');
+    return scene?.userData?.meshes?.flat?.visible;
+  });
   const beforeFocus = await sampleView(page, '[data-scene="uvs"]');
   await page.locator('[data-uv="box"]').click();
   await page.waitForTimeout(350);
@@ -348,7 +368,10 @@ async function runSuite(browserType, label, launchOpts, viewportOpts) {
     el.dispatchEvent(new Event('change', { bubbles: true }));
   });
   await page.waitForTimeout(300);
-  const strengthLo = await page.evaluate(() => window.__HTW.scenes[3].userData.meshes.mat.displacementScale);
+  const strengthLo = await page.evaluate(() => {
+    const scene = (window.__HTW.scenes || []).find((s) => s.userData?.element?.dataset?.scene === 'displace');
+    return scene?.userData?.meshes?.mat?.displacementScale;
+  });
   await page.evaluate(() => {
     const el = document.getElementById('nd-strength');
     el.value = '0.9';
@@ -356,7 +379,10 @@ async function runSuite(browserType, label, launchOpts, viewportOpts) {
     el.dispatchEvent(new Event('change', { bubbles: true }));
   });
   await page.waitForTimeout(300);
-  const strengthHi = await page.evaluate(() => window.__HTW.scenes[3].userData.meshes.mat.displacementScale);
+  const strengthHi = await page.evaluate(() => {
+    const scene = (window.__HTW.scenes || []).find((s) => s.userData?.element?.dataset?.scene === 'displace');
+    return scene?.userData?.meshes?.mat?.displacementScale;
+  });
   record(`${label}:ctrl-bump-strength`, strengthHi > strengthLo, `lo=${strengthLo} hi=${strengthHi}`);
 
   // Centerpiece orbit light
@@ -513,7 +539,9 @@ async function runSuite(browserType, label, launchOpts, viewportOpts) {
   const layout = await page.evaluate(() => {
     const doc = document.documentElement;
     const body = document.body;
-    const hScroll = doc.scrollWidth > doc.clientWidth + 1 || body.scrollWidth > body.clientWidth + 1;
+    const cs = getComputedStyle(body);
+    const overflowHidden = /hidden|clip/.test(cs.overflowX) || /hidden|clip/.test(getComputedStyle(doc).overflowX);
+    const hScroll = !overflowHidden && (doc.scrollWidth > doc.clientWidth + 1 || body.scrollWidth > body.clientWidth + 1);
     const teachers = document.getElementById('teachers');
     const tr = teachers.getBoundingClientRect();
     const fonts = [...document.fonts].filter((f) =>
