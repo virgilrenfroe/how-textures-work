@@ -4,8 +4,9 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 const errEl = document.getElementById('err');
 function showErr(msg) {
+  console.error(msg);
   errEl.style.display = 'block';
-  errEl.textContent = String(msg);
+  errEl.textContent = 'The 3D views could not start. Reload the page, or try another browser.';
 }
 window.addEventListener('error', (e) => showErr(e.message || e.error || e));
 window.addEventListener('unhandledrejection', (e) => showErr(e.reason));

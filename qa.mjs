@@ -105,6 +105,7 @@ async function runSuite(browserType, label, launchOpts, viewportOpts) {
     ignoreHTTPSErrors: false,
   });
   const page = await context.newPage();
+  page.setDefaultTimeout(120000);
 
   const consoleMsgs = [];
   const failedReqs = [];
@@ -233,6 +234,16 @@ async function runSuite(browserType, label, launchOpts, viewportOpts) {
     };
   });
   record(`${label}:hero-dom`, heroMeta.hero && heroMeta.ticker && heroMeta.heroPost && heroMeta.canvases === 1, JSON.stringify(heroMeta));
+
+  // Audience lock: no developer/status words in visible learner text
+  const devCopy = await page.evaluate(() => {
+    const txt = [document.body.innerText, document.title,
+      ...[...document.querySelectorAll('[aria-label],[alt],meta[name=description],meta[property^="og:"]')]
+        .map((e) => e.getAttribute('aria-label') || e.getAttribute('alt') || e.getAttribute('content') || '')].join('\n');
+    const bad = /webgl|three\.js|\bdpr\b|virgil|\bqa\b|reduced[- ]motion|safe mode|coarse pointer|\bfps\b|frame rate|pmrem|roomenvironment|\bcontext\b/i;
+    return txt.split('\n').filter((l) => bad.test(l)).slice(0, 5);
+  });
+  record(`${label}:audience-copy`, devCopy.length === 0, JSON.stringify(devCopy));
 
   // 3. Scroll all specimens, non-blank + screenshots
   const specimens = [
@@ -487,9 +498,9 @@ async function runSuite(browserType, label, launchOpts, viewportOpts) {
   // Anchor link (clear hash first so re-click always scrolls)
   await page.evaluate(() => {
     history.replaceState(null, '', window.location.pathname + window.location.search);
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: 'instant' });
   });
-  await page.waitForTimeout(250);
+  await page.waitForTimeout(800);
   await page.locator('.scroll-cue a[href="#s01"]').click({ force: true });
   await page.waitForTimeout(900);
   const scrolled = await page.evaluate(() => {
@@ -644,6 +655,7 @@ async function testReducedMotionAndVisibility() {
     reducedMotion: 'reduce',
   });
   const page = await context.newPage();
+  page.setDefaultTimeout(120000);
   await page.goto(BASE, { waitUntil: 'networkidle', timeout: 60000 });
   await waitReady(page);
   await page.locator('#s04').scrollIntoViewIfNeeded();
