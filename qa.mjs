@@ -235,6 +235,43 @@ async function runSuite(browserType, label, launchOpts, viewportOpts) {
   });
   record(`${label}:hero-nonblank`, heroSample.ink >= 20 && heroSample.inkShare >= 0.04, JSON.stringify(heroSample));
   record(`${label}:hero-background-share`, heroSample.bgShare >= 0.25, `bgShare=${heroSample.bgShare.toFixed(2)} (dots masked to the object)`);
+  // Mask check: outside the object's projected silhouette circle the hero must be page-coloured.
+  // (Catches an inverted/unapplied mask where dots fill the whole rectangle.)
+  const maskCheck = await page.evaluate(() => {
+    const store = window.__HSW || window.__HTW;
+    const scene = (store.scenes || []).find((s) => s.userData?.element?.dataset?.scene === 'hero');
+    const mesh = scene?.children.find((c) => c.isMesh);
+    if (!mesh) return { error: 'no hero mesh' };
+    const cam = scene.userData.camera;
+    const el = scene.userData.element;
+    const canvas = document.getElementById('c');
+    const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+    const r = el.getBoundingClientRect();
+    mesh.geometry.computeBoundingSphere();
+    const rad = mesh.geometry.boundingSphere.radius * mesh.scale.x * 1.12;
+    const c = mesh.position.clone().project(cam);
+    const d = cam.position.distanceTo(mesh.position);
+    const rNdc = rad / Math.sqrt(Math.max(1e-6, d * d - rad * rad)) / Math.tan((cam.fov * Math.PI) / 360);
+    const cx = r.left + ((c.x + 1) / 2) * r.width;
+    const cy = r.top + ((1 - c.y) / 2) * r.height;
+    const rPx = (rNdc * r.height) / 2;
+    const sx = canvas.width / canvas.clientWidth, sy = canvas.height / canvas.clientHeight;
+    const p = new Uint8Array(4);
+    let out = 0, outBg = 0, inn = 0, inInk = 0;
+    for (let gy = 0; gy < 30; gy++) for (let gx = 0; gx < 30; gx++) {
+      const vx = r.left + (r.width * (gx + 0.5)) / 30, vy = r.top + (r.height * (gy + 0.5)) / 30;
+      if (vx < 0 || vy < 0 || vx >= canvas.clientWidth || vy >= canvas.clientHeight) continue;
+      gl.readPixels(Math.floor(vx * sx), Math.floor((canvas.clientHeight - vy) * sy), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, p);
+      const dark = p[0] < 28 && p[1] < 28 && p[2] < 28;
+      if (Math.hypot(vx - cx, vy - cy) > rPx) { out++; if (dark) outBg++; } else { inn++; if (!dark) inInk++; }
+    }
+    return { out, outBgShare: out ? outBg / out : 1, inn, inInkShare: inn ? inInk / inn : 0, circle: { cx: Math.round(cx), cy: Math.round(cy), r: Math.round(rPx) } };
+  });
+  record(
+    `${label}:hero-mask-outside-object`,
+    !maskCheck.error && maskCheck.out >= 20 && maskCheck.outBgShare >= 0.98 && maskCheck.inInkShare >= 0.08,
+    JSON.stringify(maskCheck)
+  );
   // Layout: glossary, Series pill, Enter link, hero box, first specimen box never intersect
   const boxes = await page.evaluate(() => {
     const pick = {
