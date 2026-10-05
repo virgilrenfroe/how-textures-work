@@ -61,13 +61,16 @@ function makeHeroPost(accentHex) {
   const uniforms = {
     tDiffuse: { value: rt.texture },
     uAccent: { value: new THREE.Vector3(accent.r, accent.g, accent.b) },
-    uReveal: { value: 0.38 },
-    uCell: { value: 5.5 },
+    uLens: { value: new THREE.Vector2(0.62, 0.48) },
+    uLensR: { value: 0.2 },
+    uCell: { value: 9.0 },
+    uScreen: { value: new THREE.Vector2(1, 1) },
     uTime: { value: 0 },
     uRes: { value: new THREE.Vector2(HERO_RT_SIZE, HERO_RT_SIZE) },
   };
   const mat = new THREE.ShaderMaterial({
     uniforms,
+    transparent: true,
     vertexShader: `
       varying vec2 vUv;
       void main() {
@@ -79,59 +82,41 @@ function makeHeroPost(accentHex) {
       precision highp float;
       uniform sampler2D tDiffuse;
       uniform vec3 uAccent;
-      uniform float uReveal;
+      uniform vec2 uLens;
+      uniform float uLensR;
       uniform float uCell;
+      uniform vec2 uScreen;
       uniform float uTime;
-      uniform vec2 uRes;
       varying vec2 vUv;
 
-      float glyph(vec2 p, float level) {
-        // Simple density glyphs via bars/dots (ASCII-adjacent, not a font atlas)
-        float d = 1.0;
-        if (level < 0.12) return 0.0;
-        if (level < 0.28) {
-          d = step(0.42, abs(p.x)) * step(abs(p.y), 0.12); // :
-        } else if (level < 0.45) {
-          d = 1.0 - smoothstep(0.18, 0.28, length(p)); // .
-        } else if (level < 0.62) {
-          d = step(abs(p.x), 0.1) + step(abs(p.y), 0.1); // +
-          d = clamp(d, 0.0, 1.0);
-        } else if (level < 0.8) {
-          d = step(abs(p.x), 0.12) + step(abs(p.y), 0.32) * step(abs(p.x), 0.32); // #
-          d = clamp(d, 0.0, 1.0);
-        } else {
-          d = 1.0 - smoothstep(0.34, 0.42, max(abs(p.x), abs(p.y))); // block
-        }
-        return clamp(d, 0.0, 1.0);
-      }
-
       void main() {
-        vec4 src = texture2D(tDiffuse, vUv);
-        float lum = dot(src.rgb, vec3(0.299, 0.587, 0.114));
-        // Lift darks so terracotta / dark metals still print glyphs
-        lum = clamp(pow(lum, 0.62) * 1.55 + 0.08, 0.0, 1.0);
-        vec2 pix = vUv * uRes;
-        vec2 cell = floor(pix / uCell);
+        // Halftone grid in screen pixels; each dot samples the render at its cell centre
+        vec2 pix = vUv * uScreen;
+        vec2 cellId = floor(pix / uCell);
+        vec2 cUv = (cellId + 0.5) * uCell / uScreen;
+        vec4 cs = texture2D(tDiffuse, cUv);
+        float cover = smoothstep(0.15, 0.6, cs.a);          // object mask (RT alpha)
+        float lum = dot(cs.rgb / max(cs.a, 0.001), vec3(0.299, 0.587, 0.114));
+        lum = clamp(pow(lum, 0.65) * 1.3 + 0.04, 0.0, 1.0);
         vec2 local = fract(pix / uCell) - 0.5;
-        float g = glyph(local, lum);
-        // Halftone underlay — denser fill like a data portrait
-        float rad = mix(0.08, 0.48, pow(lum, 0.75));
-        float dots = 1.0 - smoothstep(rad, rad + 0.05, length(local));
-        float mark = max(g * 0.95, dots * 0.75);
-        vec3 stylized = uAccent * (0.05 + mark * (0.55 + lum * 1.55));
-        stylized += uAccent * 0.06 * sin(cell.x * 0.7 + cell.y * 1.1 + uTime * 0.6);
-        // Soft vignette keeps energy on the form
-        float vig = smoothstep(1.15, 0.35, length(vUv - 0.5) * 1.35);
-        stylized *= 0.55 + 0.55 * vig;
+        float rad = mix(0.08, 0.56, lum) * cover;           // dot size follows luminance
+        float aa = 1.2 / uCell;
+        float dotm = 1.0 - smoothstep(rad - aa, rad + aa, length(local));
+        dotm *= step(0.001, rad);
+        vec3 dotCol = uAccent * (0.5 + 0.8 * lum);
 
-        // Soft vertical reveal sweep (true PBR to the right of the line)
-        float edge = 0.02;
-        float reveal = smoothstep(uReveal - edge, uReveal + edge, vUv.x);
-        // Thin scan line at the reveal edge
-        float scan = smoothstep(0.0, 0.01, abs(vUv.x - uReveal)) * smoothstep(0.035, 0.0, abs(vUv.x - uReveal));
-        vec3 col = mix(stylized, src.rgb, reveal);
-        col += uAccent * scan * 1.4;
-        gl_FragColor = vec4(col, 1.0);
+        // Soft lens around the pointer (or a slow drift): true PBR render inside
+        vec4 src = texture2D(tDiffuse, vUv);                // premultiplied by coverage
+        float minDim = min(uScreen.x, uScreen.y);
+        float dl = length((vUv - uLens) * uScreen) / (uLensR * minDim);
+        float lens = 1.0 - smoothstep(0.55, 1.0, dl);
+        float ring = smoothstep(0.86, 0.97, dl) * (1.0 - smoothstep(0.97, 1.08, dl));
+        ring *= smoothstep(0.05, 0.5, src.a) * 0.55;
+
+        vec3 pre = mix(dotCol * dotm, src.rgb, lens) + uAccent * ring;
+        float a = clamp(mix(dotm, src.a, lens) + ring, 0.0, 1.0);
+        if (a < 0.01) discard;                              // page shows through around the shape
+        gl_FragColor = vec4(pre / a, a);
       }
     `,
     depthTest: false,
@@ -144,8 +129,9 @@ function makeHeroPost(accentHex) {
     postScene,
     postCam,
     uniforms,
-    reveal: 0.38,
-    pointerX: 0.55,
+    lens: { x: 0.62, y: 0.48 },
+    target: { x: 0.62, y: 0.48 },
+    lastPointer: -1e9,
     dragging: false,
   };
 }
@@ -499,7 +485,7 @@ if (!heroEl) throw new Error('Missing hero view [data-scene=hero]');
 const heroPost = makeHeroPost('#3dff9a');
 const heroScene = makeScene(heroEl, { bg: 0x050505, camZ: 3.05 });
 {
-  heroScene.background = new THREE.Color(0x050505);
+  heroScene.background = null; // RT alpha = object mask
   heroScene.environment = envMap;
   heroScene.environmentIntensity = 0.35;
   const geo = new THREE.SphereGeometry(0.95, 160, 120);
@@ -534,7 +520,21 @@ const heroScene = makeScene(heroEl, { bg: 0x050505, camZ: 3.05 });
   heroScene.userData.heroPost = heroPost;
   heroScene.userData.controls.enableZoom = false;
   heroScene.userData.controls.enableRotate = false;
+  heroScene.userData.controls.enabled = false;
+    geo.computeBoundingSphere();
+  const heroFitRadius = (geo.boundingSphere.radius + disp) * mesh.scale.x;
+  heroScene.userData.controls.maxDistance = 20;
   heroScene.userData.update = (t, dt) => {
+    // Fit the whole object inside the hero box at any aspect (no hard crop)
+    {
+      const cam = heroScene.userData.camera;
+      const R = heroFitRadius;
+      const vf = (cam.fov * Math.PI) / 360;
+      const hf = Math.atan(Math.tan(vf) * cam.aspect);
+      const d = (R * 1.06) / Math.sin(Math.min(vf, hf));
+      cam.position.set(0, 0.12, d);
+      heroScene.userData.controls.target.set(0, 0, 0);
+    }
     if (!reducedMotion) {
       mesh.rotation.y += dt * 0.22;
       key.position.x = Math.cos(t * 0.55) * 2.5;
@@ -802,33 +802,23 @@ const weatherScene = makeScene(document.querySelector('[data-scene="weather"]'),
 
 // —— UI ——
 
-// Hero reveal pointer + auto sweep
+// Hero reveal lens: follows the pointer, drifts slowly when idle
 {
   const el = heroEl;
   const post = heroPost;
-  const setFromClientX = (clientX) => {
+  el.style.touchAction = 'pan-y';
+  const setTarget = (e) => {
     const r = el.getBoundingClientRect();
-    if (r.width <= 0) return;
-    post.pointerX = Math.min(0.95, Math.max(0.05, (clientX - r.left) / r.width));
-    post.reveal = post.pointerX;
+    if (r.width <= 0 || r.height <= 0) return;
+    post.target.x = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+    post.target.y = Math.min(1, Math.max(0, 1 - (e.clientY - r.top) / r.height));
+    post.lastPointer = performance.now();
   };
-  el.addEventListener('pointerdown', (e) => {
-    post.dragging = true;
-    el.setPointerCapture?.(e.pointerId);
-    setFromClientX(e.clientX);
-  });
-  el.addEventListener('pointermove', (e) => {
-    if (post.dragging || e.buttons) setFromClientX(e.clientX);
-    else if (!reducedMotion) {
-      const r = el.getBoundingClientRect();
-      if (r.width > 0 && e.clientY >= r.top && e.clientY <= r.bottom) {
-        const target = (e.clientX - r.left) / r.width;
-        post.reveal += (target - post.reveal) * 0.12;
-      }
-    }
-  });
+  el.addEventListener('pointerdown', (e) => { post.dragging = true; setTarget(e); });
+  el.addEventListener('pointermove', setTarget);
   el.addEventListener('pointerup', () => { post.dragging = false; });
-  el.addEventListener('pointerleave', () => { post.dragging = false; });
+  el.addEventListener('pointercancel', () => { post.dragging = false; });
+  el.addEventListener('pointerleave', () => { post.dragging = false; post.lastPointer = performance.now() - 1200; });
 }
 
 const flatBadge = document.getElementById('flat-badge');
@@ -974,14 +964,20 @@ function animate(now) {
 
     const post = scene.userData.heroPost;
     if (post) {
-      if (!post.dragging && !reducedMotion) {
-        post.reveal = 0.5 + Math.sin(now * 0.00045) * 0.28;
-      } else if (reducedMotion && !post.dragging) {
-        post.reveal = 0.42;
+      const tnow = now * 0.001;
+      const idle = !post.dragging && performance.now() - post.lastPointer > 1800;
+      if (idle && reducedMotion) { post.target.x = 0.62; post.target.y = 0.48; }
+      else if (idle) {
+        post.target.x = 0.5 + 0.24 * Math.sin(tnow * 0.33);
+        post.target.y = 0.5 + 0.16 * Math.sin(tnow * 0.51 + 1.0);
       }
+      const k = reducedMotion ? 1 : 0.12;
+      post.lens.x += (post.target.x - post.lens.x) * k;
+      post.lens.y += (post.target.y - post.lens.y) * k;
       const aspect = Math.max(0.5, width / height);
-      const rtW = HERO_RT_SIZE;
-      const rtH = Math.max(96, Math.round(HERO_RT_SIZE / aspect));
+      const pr = renderer.getPixelRatio();
+      const rtW = Math.round(Math.min(720, Math.max(240, width * pr * 0.5)));
+      const rtH = Math.max(96, Math.round(rtW / aspect));
       if (post.rt.width !== rtW || post.rt.height !== rtH) {
         post.rt.setSize(rtW, rtH);
         post.uniforms.uRes.value.set(rtW, rtH);
@@ -991,17 +987,20 @@ function animate(now) {
       renderer.setViewport(0, 0, rtW, rtH);
       const prevTone = renderer.toneMappingExposure;
       renderer.setRenderTarget(post.rt);
+      renderer.setClearColor(0x000000, 0);
       renderer.clear();
       camera.aspect = aspect;
       camera.updateProjectionMatrix();
       renderer.render(scene, camera);
       renderer.setRenderTarget(null);
+      renderer.setClearColor(0x0c0a08, 1);
       renderer.setScissorTest(true);
       renderer.setViewport(left, bottom, width, height);
       renderer.setScissor(left, bottom, width, height);
-      post.uniforms.uReveal.value = post.reveal;
-      post.uniforms.uTime.value = now * 0.001;
-      post.uniforms.uCell.value = Math.max(4.2, Math.min(9, width / 95));
+      post.uniforms.uLens.value.set(post.lens.x, post.lens.y);
+      post.uniforms.uScreen.value.set(width * pr, height * pr);
+      post.uniforms.uTime.value = tnow;
+      post.uniforms.uCell.value = Math.max(6, Math.min(11, width / 105)) * pr;
       const prevTM = renderer.toneMapping;
       renderer.toneMapping = THREE.NoToneMapping;
       renderer.autoClear = false;

@@ -210,15 +210,58 @@ async function runSuite(browserType, label, launchOpts, viewportOpts) {
   // Hero specimen: present, non-blank, still one canvas
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(400);
-  const heroSample = await sampleView(page, '[data-scene="hero"]', 6);
-  const heroOk = heroSample && heroSample.nonBlank >= 4;
-  record(
-    `${label}:hero-nonblank`,
-    heroOk,
-    heroSample
-      ? `nonBlank=${heroSample.nonBlank}/${heroSample.sampleCount} mean=${heroSample.mean?.map((n) => n.toFixed(0)).join(',')}`
-      : 'null'
-  );
+  const heroSample = await page.evaluate(() => {
+    const el = document.querySelector('[data-scene="hero"]');
+    const canvas = document.getElementById('c');
+    const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+    const r = el.getBoundingClientRect();
+    const sx = canvas.width / canvas.clientWidth;
+    const sy = canvas.height / canvas.clientHeight;
+    const x0 = Math.max(0, r.left), x1 = Math.min(canvas.clientWidth, r.right);
+    const y0 = Math.max(0, r.top), y1 = Math.min(canvas.clientHeight, r.bottom);
+    let n = 0, ink = 0, bg = 0;
+    const p = new Uint8Array(4);
+    for (let gy = 0; gy < 24; gy++) {
+      for (let gx = 0; gx < 24; gx++) {
+        const vx = x0 + ((x1 - x0) * (gx + 0.5)) / 24;
+        const vy = y0 + ((y1 - y0) * (gy + 0.5)) / 24;
+        gl.readPixels(Math.floor(vx * sx), Math.floor((canvas.clientHeight - vy) * sy), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, p);
+        n++;
+        if (p[0] < 28 && p[1] < 28 && p[2] < 28) bg++;
+        else ink++;
+      }
+    }
+    return { n, ink, bg, inkShare: ink / n, bgShare: bg / n };
+  });
+  record(`${label}:hero-nonblank`, heroSample.ink >= 20 && heroSample.inkShare >= 0.04, JSON.stringify(heroSample));
+  record(`${label}:hero-background-share`, heroSample.bgShare >= 0.25, `bgShare=${heroSample.bgShare.toFixed(2)} (dots masked to the object)`);
+  // Layout: glossary, Series pill, Enter link, hero box, first specimen box never intersect
+  const boxes = await page.evaluate(() => {
+    const pick = {
+      glossary: '.hero-gloss',
+      seriesPill: '.series-nav a',
+      enterLink: '.scroll-cue a[href="#s01"]',
+      heroBox: '[data-scene="hero"]',
+      firstSpecimen: '#s01 .view',
+    };
+    const out = {};
+    for (const [k, s] of Object.entries(pick)) {
+      const el = document.querySelector(s);
+      const r = el?.getBoundingClientRect();
+      out[k] = r ? { l: r.left + scrollX, t: r.top + scrollY, r: r.right + scrollX, b: r.bottom + scrollY } : null;
+    }
+    return out;
+  });
+  const keys = Object.keys(boxes);
+  const hits = [];
+  for (let i = 0; i < keys.length; i++) {
+    for (let j = i + 1; j < keys.length; j++) {
+      const a = boxes[keys[i]], b = boxes[keys[j]];
+      if (!a || !b) { hits.push(`${keys[i]}|${keys[j]} missing`); continue; }
+      if (a.l < b.r - 0.5 && b.l < a.r - 0.5 && a.t < b.b - 0.5 && b.t < a.b - 0.5) hits.push(`${keys[i]}×${keys[j]}`);
+    }
+  }
+  record(`${label}:hero-no-overlap`, hits.length === 0, hits.length ? hits.join(', ') : `${keys.length} boxes clear`);
   const heroMeta = await page.evaluate(() => {
     const hero = document.querySelector('[data-scene="hero"]');
     const ticker = document.querySelector('.ticker');
