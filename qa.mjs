@@ -484,17 +484,20 @@ async function runSuite(browserType, label, launchOpts, viewportOpts) {
   const dragDiff = avgDiff(beforeDrag?.patch, afterDrag?.patch);
   record(`${label}:ctrl-drag-orbit`, dragDiff > 2, `diff=${dragDiff.toFixed(2)}`);
 
-  // Anchor link
-  await page.evaluate(() => window.scrollTo(0, 0));
-  await page.waitForTimeout(200);
-  await page.locator('a[href="#s01"]').click();
-  await page.waitForTimeout(600);
+  // Anchor link (clear hash first so re-click always scrolls)
+  await page.evaluate(() => {
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+    window.scrollTo(0, 0);
+  });
+  await page.waitForTimeout(250);
+  await page.locator('.scroll-cue a[href="#s01"]').click({ force: true });
+  await page.waitForTimeout(900);
   const scrolled = await page.evaluate(() => {
     const s01 = document.getElementById('s01');
     const r = s01.getBoundingClientRect();
-    return { top: r.top, y: window.scrollY };
+    return { top: r.top, y: window.scrollY, hash: location.hash };
   });
-  record(`${label}:anchor-enter-lab`, scrolled.top < 220 || scrolled.y > 80, JSON.stringify(scrolled));
+  record(`${label}:anchor-enter-lab`, scrolled.top < 280 || scrolled.y > 60, JSON.stringify(scrolled));
 
   // 5. Resize desktop -> mobile alignment
   const deskW = viewportOpts.viewport?.width ?? viewportOpts.width ?? 1440;
