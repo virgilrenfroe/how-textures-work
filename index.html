@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="description" content="How Textures Work — a materials lab on UV maps, albedo, roughness, normal vs displacement, and weathering. Companion to How Surfaces Work." />
+  <title>How Textures Work · Virgil Renfroe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #0c0a08;
+      --paper: #f4efe6;
+      --cream: #e8dfd0;
+      --mute: rgba(244, 239, 230, 0.58);
+      --dim: rgba(244, 239, 230, 0.28);
+      --accent: #ff5a1f;
+      --accent2: #c8f542;
+      --steel: #7ec8ff;
+      --line: rgba(244, 239, 230, 0.14);
+      --card: #16120e;
+      --placard: #1a1612;
+      --mono: "Space Mono", ui-monospace, monospace;
+      --display: "Bricolage Grotesque", sans-serif;
+      --body: "Instrument Sans", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+    body {
+      margin: 0;
+      background: var(--ink);
+      color: var(--paper);
+      font-family: var(--body);
+      font-size: 16px;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+    /* One shared full-page WebGL canvas (multiple-elements pattern) */
+    #c {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .content {
+      position: relative;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .content a, .content button, .content input, .content label,
+    .content .view, .content .chip, .content .ctrl {
+      pointer-events: auto;
+    }
+
+    /* —— Hero —— */
+    .hero {
+      min-height: 92vh;
+      padding: clamp(1.25rem, 4vw, 3rem);
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: clamp(1rem, 3vw, 2.5rem);
+      align-items: end;
+      position: relative;
+    }
+    .hero-kicker {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      margin-bottom: 1rem;
+    }
+    .hero h1 {
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: clamp(3.2rem, 11vw, 8.5rem);
+      line-height: 0.88;
+      letter-spacing: -0.04em;
+      margin: 0 0 1.25rem;
+      max-width: 11ch;
+    }
+    .hero h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+    .hero-sub {
+      font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+      max-width: 34ch;
+      color: var(--mute);
+      margin: 0 0 1.75rem;
+      font-weight: 500;
+    }
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem 1.2rem;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .hero-meta span { color: var(--paper); }
+    .hero-aside {
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1.5rem;
+      padding-top: 0.5rem;
+    }
+    .hero-diagram {
+      border: 1px solid var(--line);
+      background: linear-gradient(160deg, #1c1712 0%, #0e0c0a 100%);
+      padding: 1.1rem 1.2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-diagram::before {
+      content: "";
+      position: absolute;
+      top: -40%;
+      right: -20%;
+      width: 70%;
+      height: 90%;
+      background: radial-gradient(circle, rgba(255,90,31,0.22), transparent 65%);
+      pointer-events: none;
+    }
+    .hero-diagram h2 {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin: 0 0 0.85rem;
+      color: var(--accent);
+      position: relative;
+    }
+    .diagram-rows {
+      display: grid;
+      gap: 0.55rem;
+      position: relative;
+      font-size: 13px;
+      color: var(--cream);
+    }
+    .diagram-rows div {
+      display: grid;
+      grid-template-columns: 7.5rem 1fr;
+      gap: 0.6rem;
+      align-items: baseline;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 0.45rem;
+    }
+    .diagram-rows b {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--steel);
+      font-weight: 400;
+    }
+    .scroll-cue {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .scroll-cue a { color: var(--paper); text-decoration: none; border-bottom: 1px solid var(--accent); }
+
+    /* —— Specimens —— */
+    .specimen {
+      scroll-margin-top: 8px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.85fr);
+      gap: 0;
+      min-height: 78vh;
+      border-top: 1px solid var(--line);
+      position: relative;
+    }
+    .specimen.centerpiece {
+      grid-template-columns: 1fr;
+      min-height: 92vh;
+    }
+    .view-wrap {
+      position: relative;
+      min-height: 52vh;
+      background: transparent;
+    }
+    .view {
+      width: 100%;
+      height: 100%;
+      min-height: 52vh;
+      position: relative;
+      touch-action: none;
+    }
+    .centerpiece .views {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 58vh;
+      border-bottom: 1px solid var(--line);
+    }
+    .centerpiece .view-pane {
+      position: relative;
+      border-right: 1px solid var(--line);
+      min-height: 58vh;
+    }
+    .centerpiece .view-pane:last-child { border-right: none; }
+    .view-label {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 3;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding: 6px 10px;
+      background: rgba(12,10,8,0.72);
+      border: 1px solid var(--line);
+      color: var(--accent2);
+      pointer-events: none;
+    }
+    .placard {
+      background: var(--placard);
+      border-left: 1px solid var(--line);
+      padding: clamp(1.25rem, 3vw, 2rem);
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      justify-content: center;
+    }
+    .centerpiece .placard {
+      border-left: none;
+      border-top: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 1.5rem 2rem;
+      align-items: start;
+    }
+    .specimen-num {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin: 0;
+    }
+    .specimen-title {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      margin: 0;
+    }
+    .lesson {
+      font-size: 14.5px;
+      color: var(--cream);
+      margin: 0;
+    }
+    .lesson p {
+      margin: 0 0 0.55rem;
+    }
+    .lesson p:last-child { margin-bottom: 0; }
+    .try {
+      border: 1px dashed rgba(200, 245, 66, 0.45);
+      background: rgba(200, 245, 66, 0.06);
+      padding: 0.85rem 1rem;
+    }
+    .try strong {
+      display: block;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      margin-bottom: 0.35rem;
+      font-weight: 700;
+    }
+    .try p { margin: 0; font-size: 14px; color: var(--paper); }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+    .chip {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.45rem 0.7rem;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--paper);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .chip:hover, .chip[aria-pressed="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0c0a08;
+    }
+    .ctrls {
+      display: grid;
+      gap: 0.65rem;
+    }
+    .ctrl {
+      display: grid;
+      grid-template-columns: 6.5rem 1fr 2.6rem;
+      gap: 0.55rem;
+      align-items: center;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--mute);
+    }
+    .ctrl input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      height: 1.4rem;
+    }
+    .ctrl output { text-align: right; color: var(--paper); }
+
+    /* —— Teachers —— */
+    .teachers {
+      border-top: 1px solid var(--line);
+      padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 4vw, 3rem);
+      background: #100e0b;
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: clamp(1.5rem, 4vw, 3rem);
+    }
+    .teachers h2 {
+      font-family: var(--display);
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin: 0 0 0.75rem;
+    }
+    .teachers .lede {
+      color: var(--mute);
+      max-width: 36ch;
+      margin: 0;
+    }
+    .teach-grid {
+      display: grid;
+      gap: 1rem;
+    }
+    .teach-card {
+      border: 1px solid var(--line);
+      padding: 1.1rem 1.2rem;
+      background: var(--card);
+    }
+    .teach-card h3 {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--steel);
+      margin: 0 0 0.6rem;
+      font-weight: 700;
+    }
+    .teach-card ul {
+      margin: 0;
+      padding-left: 1.1rem;
+      color: var(--cream);
+      font-size: 14.5px;
+    }
+    .teach-card li { margin-bottom: 0.35rem; }
+    .teach-card p { margin: 0; font-size: 14.5px; color: var(--cream); }
+    .map-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    .map-cols .teach-card { margin: 0; }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 1.25rem clamp(1.25rem, 4vw, 3rem) 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.5rem;
+      justify-content: space-between;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    footer a { color: var(--paper); text-decoration: none; border-bottom: 1px solid var(--accent); }
+
+    .err {
+      position: fixed;
+      left: 12px; right: 12px; bottom: 12px;
+      z-index: 20;
+      background: #3a1212;
+      color: #ffd6d6;
+      padding: 12px 14px;
+      border-radius: 8px;
+      display: none;
+      white-space: pre-wrap;
+      font-family: var(--mono);
+      font-size: 12px;
+      pointer-events: none;
+    }
+
+    @media (max-width: 860px) {
+      .hero {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+      }
+      .hero h1 { max-width: none; }
+      .specimen, .centerpiece .placard, .teachers, .map-cols {
+        grid-template-columns: 1fr;
+      }
+      .placard { border-left: none; border-top: 1px solid var(--line); }
+      .centerpiece .views { grid-template-columns: 1fr; }
+      .centerpiece .view-pane { border-right: none; border-bottom: 1px solid var(--line); min-height: 42vh; }
+      .view, .view-wrap { min-height: 42vh; }
+      .specimen { min-height: auto; }
+    }
+  
+    .series-nav {
+      position: absolute;
+      top: clamp(1rem, 3vw, 1.75rem);
+      right: clamp(1rem, 3vw, 2rem);
+      z-index: 5;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .series-nav a {
+      color: var(--paper);
+      text-decoration: none;
+      border-bottom: 1px solid var(--accent);
+      pointer-events: auto;
+    }
+    .flat-uv {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      width: min(42%, 220px);
+      aspect-ratio: 1;
+      border: 1px solid var(--line);
+      background: #0a0908;
+      z-index: 3;
+      pointer-events: none;
+      display: none;
+    }
+    .flat-uv.show { display: block; }
+    .flat-uv canvas { width: 100%; height: 100%; display: block; }
+    .flat-uv label {
+      position: absolute;
+      top: 6px; left: 6px;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      background: rgba(12,10,8,0.75);
+      padding: 3px 6px;
+      border: 1px solid var(--line);
+    }
+
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div class="err" id="err"></div>
+
+  <div class="content">
+    <nav class="series-nav"><a href="https://how-surfaces-work-production.up.railway.app/">Series · Surfaces</a></nav>
+    <header class="hero" id="top">
+      <div>
+        <p class="hero-kicker">Technique exhibit · Education · Virgil Renfroe</p>
+        <h1>How <em>Textures</em> Work</h1>
+        <p class="hero-sub">A materials lab on UV maps, color, roughness, fake bumps, and weathering. Same shape. Maps layered one at a time.</p>
+        <div class="hero-meta">
+          <div>Audience <span>HS / intro college</span></div>
+          <div>Stack <span>three.js · one WebGL context</span></div>
+          <div>Core lesson <span>Normals fake · displacement moves</span></div>
+        </div>
+      </div>
+      <aside class="hero-aside">
+        <div class="hero-diagram" aria-label="Lesson map">
+          <h2>What you will see</h2>
+          <div class="diagram-rows">
+            <div><b>UVs</b><span>A flat image wraps a 3D shape.</span></div>
+            <div><b>Albedo</b><span>Color painted across the surface.</span></div>
+            <div><b>Roughness map</b><span>Polished vs worn patches.</span></div>
+            <div><b>Normal map</b><span>Fake bumps that bend light.</span></div>
+            <div><b>Displacement</b><span>Real vertices move. Outline changes.</span></div>
+            <div><b>Weathering</b><span>A mask ages clean metal into rust.</span></div>
+          </div>
+        </div>
+        <p class="scroll-cue"><a href="#s01">Enter the lab ↓</a></p>
+      </aside>
+    </header>
+
+    <section class="specimen" id="s01">
+      <div class="view-wrap">
+        <div class="view" data-scene="uvs" tabindex="0" aria-label="UV specimen viewport"></div>
+        <div class="view-label" id="flat-badge" style="display:none; top:auto; bottom:14px; left:14px;">Flat UV plane on</div>
+      </div>
+      <aside class="placard">
+        <p class="specimen-num">Specimen 01 — UVs</p>
+        <h2 class="specimen-title">A flat image wraps a shape</h2>
+        <div class="lesson">
+          <p>UV coordinates map each 3D point to a pixel on a flat image.</p>
+          <p>A checker grid shows stretch and seams.</p>
+          <p>Same map on a sphere and a box.</p>
+          <p>The flat layout is the unwrap beside the 3D view.</p>
+        </div>
+        <div class="try">
+          <strong>Try this</strong>
+          <p>Toggle Flat layout. Find where the checker lines bend on the sphere. That bend is stretch.</p>
+        </div>
+        <div class="chips" role="group" aria-label="UV view toggles">
+          <button type="button" class="chip" data-uv="flat" aria-pressed="false">Flat layout</button>
+          <button type="button" class="chip" data-uv="sphere" aria-pressed="true">Focus sphere</button>
+          <button type="button" class="chip" data-uv="box" aria-pressed="false">Focus box</button>
+        </div>
+      </aside>
+    </section>
+
+    <section class="specimen" id="s02">
+      <div class="view-wrap">
+        <div class="view" data-scene="maps" tabindex="0" aria-label="Albedo and roughness specimen viewport"></div>
+      </div>
+      <aside class="placard">
+        <p class="specimen-num">Specimen 02 — Albedo &amp; roughness</p>
+        <h2 class="specimen-title">Color map vs roughness map</h2>
+        <div class="lesson">
+          <p>An albedo map paints color on the surface.</p>
+          <p>A roughness map paints how sharp the shine is.</p>
+          <p>Same wood pattern. Different jobs.</p>
+          <p>Turn each map off to see what it contributes.</p>
+        </div>
+        <div class="try">
+          <strong>Try this</strong>
+          <p>Turn Albedo off. The wood color vanishes. Then turn Roughness off. The worn shine becomes even.</p>
+        </div>
+        <div class="chips" role="group" aria-label="Map toggles">
+          <button type="button" class="chip" data-map="albedo" aria-pressed="true">Albedo</button>
+          <button type="button" class="chip" data-map="rough" aria-pressed="true">Roughness</button>
+          <button type="button" class="chip" data-map="wood" aria-pressed="true">Wood</button>
+          <button type="button" class="chip" data-map="marble" aria-pressed="false">Marble</button>
+        </div>
+      </aside>
+    </section>
+
+    <section class="specimen centerpiece" id="s03">
+      <div class="views">
+        <div class="view-pane">
+          <div class="view-label">Normal map · fake bumps</div>
+          <div class="view" data-scene="normal" tabindex="0" aria-label="Normal map side"></div>
+        </div>
+        <div class="view-pane">
+          <div class="view-label">Displacement · real geometry</div>
+          <div class="view" data-scene="displace" tabindex="0" aria-label="Displacement side"></div>
+        </div>
+      </div>
+      <aside class="placard">
+        <div>
+          <p class="specimen-num">Specimen 03 — Centerpiece</p>
+          <h2 class="specimen-title">Fake bumps vs moved vertices</h2>
+          <div class="lesson">
+            <p>Left: a normal map bends lighting. The mesh stays smooth.</p>
+            <p>Right: displacement moves vertices. The mesh gains real height.</p>
+            <p>A key light orbits both.</p>
+            <p>Only displacement changes the silhouette.</p>
+          </div>
+        </div>
+        <div>
+          <div class="try">
+            <strong>Try this</strong>
+            <p>Watch the outlines for ten seconds. Then toggle Silhouette. Ask: which finish would cast a bumpy shadow?</p>
+          </div>
+          <div class="chips" role="group" aria-label="Centerpiece toggles">
+            <button type="button" class="chip" data-nd="silhouette" aria-pressed="false">Silhouette</button>
+            <button type="button" class="chip" data-nd="orbit" aria-pressed="true">Orbit light</button>
+          </div>
+          <div class="ctrls" style="margin-top:1rem">
+            <label class="ctrl">Bump strength
+              <input id="nd-strength" type="range" min="0" max="1" step="0.01" value="0.75" />
+              <output id="nd-strength-out" for="nd-strength">0.75</output>
+            </label>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="specimen" id="s04">
+      <div class="view-wrap">
+        <div class="view" data-scene="weather" tabindex="0" aria-label="Weathering specimen viewport"></div>
+      </div>
+      <aside class="placard">
+        <p class="specimen-num">Specimen 04 — Weathering</p>
+        <h2 class="specimen-title">Clean metal ages into rust</h2>
+        <div class="lesson">
+          <p>A procedural noise mask picks where rust grows.</p>
+          <p>Age drives the mask from 0 to 1.</p>
+          <p>Color, roughness, and metalness change together.</p>
+          <p>This is how games and product renders fake corrosion.</p>
+        </div>
+        <div class="try">
+          <strong>Try this</strong>
+          <p>Drag Age from 0 to 1. Watch rust crawl from the noise valleys first.</p>
+        </div>
+        <div class="ctrls">
+          <label class="ctrl">Age
+            <input id="age" type="range" min="0" max="1" step="0.01" value="0.45" />
+            <output id="age-out" for="age">0.45</output>
+          </label>
+        </div>
+      </aside>
+    </section>
+
+    <section class="teachers" id="teachers">
+      <div>
+        <h2>For teachers</h2>
+        <p class="lede">Short objectives, one classroom loop, and how the lab maps to studio practice and materials science.</p>
+      </div>
+      <div class="teach-grid">
+        <div class="teach-card">
+          <h3>Learning objectives</h3>
+          <ul>
+            <li>Explain what UV coordinates do on a simple solid.</li>
+            <li>Separate albedo (color) from roughness (shine variation).</li>
+            <li>Contrast normal maps (fake bumps) with displacement (real geometry).</li>
+            <li>Describe weathering as a mask that drives several material channels.</li>
+          </ul>
+        </div>
+        <div class="teach-card">
+          <h3>10-minute classroom activity</h3>
+          <p>1) Bring a cereal box. 2) Students sketch the six faces as a cross (UV unwrap) and draw a logo on one face. 3) Open Specimen 01 and match where the logo would land on a box. 4) Finish on Specimen 03: write one sentence on why a normal-map brick wall would cast a flat shadow.</p>
+        </div>
+        <div class="map-cols">
+          <div class="teach-card">
+            <h3>Art &amp; design map</h3>
+            <p>Game texturing, product finishes, concept look-dev, UV layout for packaging and sculpture wraps.</p>
+          </div>
+          <div class="teach-card">
+            <h3>Materials science map</h3>
+            <p>Surface roughness variation, corrosion / oxidation fronts, coating wear, topography vs optical illusion of depth.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div>How Textures Work · Virgil Renfroe · Education exhibit · <a href="https://how-surfaces-work-production.up.railway.app/">Series · Surfaces</a></div>
+      <div><a href="#top">Back to top</a></div>
+    </footer>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
