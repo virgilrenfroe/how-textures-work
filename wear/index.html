@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="description" content="How Textures Work — a materials lab on UV maps, albedo, roughness, normal vs displacement, and weathering. Companion to How Surfaces Work." />
-  <title>How Textures Work · Lesson 02 · Materials</title>
-  <meta property="og:title" content="How Textures Work · Lesson 02 · Materials" />
-  <meta property="og:description" content="How Textures Work — Lesson 02 · Materials. See how flat images add color, shine, bumps, and rust to a 3D shape." />
+  <meta name="description" content="How Wear Shows — Lesson 04 · Materials. See why dirt collects in crevices, why paint chips on edges, and how artists hide repeated textures." />
+  <title>How Wear Shows · Lesson 04 · Materials</title>
+  <meta property="og:title" content="How Wear Shows · Lesson 04 · Materials" />
+  <meta property="og:description" content="Lesson 04 · Materials. Dirt sits low, wear rides the edges. One age slider ages a toolbox from new to used." />
   <meta property="og:type" content="website" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -18,9 +18,9 @@
       --cream: #e8dfd0;
       --mute: rgba(244, 239, 230, 0.58);
       --dim: rgba(244, 239, 230, 0.28);
-      --accent: #3dff9a;
-      --accent2: #ffb020;
-      --steel: #8ab4ff;
+      --accent: #ffb02e;
+      --accent2: #6fd6c8;
+      --steel: #c9b89a;
       --line: rgba(244, 239, 230, 0.14);
       --card: #101010;
       --placard: #0e0e0e;
@@ -644,6 +644,35 @@
       .series-nav { padding-top: 0.75rem; }
     }
 
+  
+    /* —— Lesson 04 craft: printed, stamped, handled —— */
+    .specimen-num {
+      display: inline-block;
+      border: 1.5px solid var(--accent);
+      color: var(--accent) !important;
+      padding: 0.2rem 0.55rem 0.15rem;
+      border-radius: 4px;
+      transform: rotate(-1.2deg);
+      box-shadow: 1px 1px 0 rgba(255, 176, 46, 0.25);
+    }
+    .try {
+      border: 1px solid var(--line);
+      border-top: 2px dashed rgba(255, 176, 46, 0.55);
+      background:
+        radial-gradient(rgba(244, 239, 230, 0.045) 1px, transparent 1.2px) 0 0 / 7px 7px,
+        #0f0d0a;
+    }
+    .teach-card {
+      background:
+        radial-gradient(rgba(244, 239, 230, 0.04) 1px, transparent 1.2px) 0 0 / 6px 6px,
+        var(--card);
+    }
+    .hero h1 em {
+      text-shadow: 2px 2px 0 rgba(111, 214, 200, 0.35);
+    }
+    .view[data-scene="tiles"] { cursor: grab; }
+    .view.rubbing { cursor: crosshair; }
+    .chip[data-rub][aria-pressed="true"] { box-shadow: 0 0 0 2px rgba(255, 176, 46, 0.35); }
   </style>
   <script type="importmap">
   {
@@ -658,167 +687,172 @@
   <canvas id="c"></canvas>
   <div class="err" id="err"></div>
 
-
   <div class="ticker" aria-hidden="true">
     <div class="ticker-track">
-      
-      <span>UV</span><span>ALBEDO</span><span>ROUGHNESS</span><span>NORMAL</span>
-      <span>DISPLACEMENT</span><span>OCCLUSION</span><span>WEATHERING</span><span>SEAMS</span>
-      <span>TILING</span><span>MIPMAPS</span><span>TANGENT</span><span>HEIGHT</span>
-
-      
-      <span>UV</span><span>ALBEDO</span><span>ROUGHNESS</span><span>NORMAL</span>
-      <span>DISPLACEMENT</span><span>OCCLUSION</span><span>WEATHERING</span><span>SEAMS</span>
-      <span>TILING</span><span>MIPMAPS</span><span>TANGENT</span><span>HEIGHT</span>
-
+      <span>AMBIENT OCCLUSION</span><span>CREVICE</span><span>DIRT</span><span>EDGE WEAR</span><span>CURVATURE</span><span>CHIP</span><span>PRIMER</span><span>BARE METAL</span><span>TILING</span><span>REPETITION</span><span>AGE</span><span>GRIME</span>
+      <span>AMBIENT OCCLUSION</span><span>CREVICE</span><span>DIRT</span><span>EDGE WEAR</span><span>CURVATURE</span><span>CHIP</span><span>PRIMER</span><span>BARE METAL</span><span>TILING</span><span>REPETITION</span><span>AGE</span><span>GRIME</span>
     </div>
   </div>
   <div class="content">
-    <nav class="series-nav" style="gap:0.45rem;flex-wrap:wrap"><a href="https://how-surfaces-work-production.up.railway.app/">Series · Surfaces</a><a href="/wear/">Lesson 04 · Wear</a></nav>
+    <nav class="series-nav" style="gap:0.45rem;flex-wrap:wrap">
+      <a href="https://how-surfaces-work-production.up.railway.app/">Lesson 01 · Surfaces</a>
+      <a href="/">Lesson 02 · Textures</a>
+      <a href="https://how-surfaces-work-preview-production.up.railway.app/sheen/">Lesson 03 · Soft</a>
+    </nav>
     <header class="hero" id="top">
       <div class="hero-copy">
-        <p class="hero-kicker">Lesson 02 · Materials</p>
-        <h1>How <em>Textures</em> Work</h1>
-        <p class="hero-sub">A materials lab on UV maps, color, roughness, fake bumps, and weathering. Same shape. Maps layered one at a time.</p>
+        <p class="hero-kicker">Lesson 04 · Materials</p>
+        <h1>How <em>Wear</em> Shows</h1>
+        <p class="hero-sub">A materials lab on dirt, chipped paint, and worn floors. Use leaves marks in the same places every time. Learn to see them.</p>
         <div class="hero-meta">
           <div>Time <span>20 min</span></div>
-          <div>You will learn <span>how flat images add color, bumps, and rust</span></div>
-          <div>Try first <span>drag across the big studded sphere to see the real material</span></div>
-          <div>Core lesson <span>Normals fake · displacement moves</span></div>
+          <div>You will learn <span>where dirt and wear collect, and why</span></div>
+          <div>Try first <span>drag across the big toolbox to see the real material</span></div>
+          <div>Core lesson <span>Dirt sits low · wear rides the edges</span></div>
         </div>
         <p class="scroll-cue"><a href="#s01">Enter the lab ↓</a></p>
       </div>
       <div class="hero-stage">
-        <div class="view" data-scene="hero" tabindex="0" aria-label="Large studded sphere. Drag across it to see the real material under the dot pattern."></div>
+        <div class="view" data-scene="hero" tabindex="0" aria-label="Large worn toolbox. Drag across it to see the real material under the dot pattern."></div>
       </div>
       <div class="hero-diagram hero-gloss" aria-label="Lesson map">
-          <h2>What you will see</h2>
-          <div class="diagram-rows">
-            <div><b>UVs</b><span>A flat image wraps a 3D shape.</span></div>
-            <div><b>Albedo</b><span>Color painted across the surface.</span></div>
-            <div><b>Roughness map</b><span>Polished vs worn patches.</span></div>
-            <div><b>Normal map</b><span>Fake bumps that bend light.</span></div>
-            <div><b>Displacement</b><span>Real vertices move. Outline changes.</span></div>
-            <div><b>Weathering</b><span>A mask ages clean metal into rust.</span></div>
-          </div>
+        <h2>What you will see</h2>
+        <div class="diagram-rows">
+          <div><b>AO map</b><span>A grey image of how open each point is.</span></div>
+          <div><b>Crevice</b><span>A narrow gap. Little light gets in. Dirt stays.</span></div>
+          <div><b>Edge wear</b><span>Paint rubs off where edges stick out.</span></div>
+          <div><b>Curvature</b><span>A mask that finds sharp edges.</span></div>
+          <div><b>Tiling</b><span>One small image repeats across a big surface.</span></div>
+          <div><b>Age</b><span>One number that drives dirt, wear, and dull paint.</span></div>
         </div>
+      </div>
     </header>
 
     <section class="specimen" id="s01">
       <div class="view-wrap">
-        <div class="view" data-scene="uvs" tabindex="0" aria-label="UV specimen: 3D view. Drag to turn."></div>
-        <div class="view-label" id="flat-badge" style="display:none; top:auto; bottom:14px; left:14px;">Flat UV plane on</div>
+        <div class="view" data-scene="ao" tabindex="0" aria-label="Ridged vase with an ambient occlusion map: 3D view. Drag to turn."></div>
       </div>
       <aside class="placard">
-        <p class="specimen-num">Specimen 01 — UVs</p>
-        <h2 class="specimen-title">A flat image wraps a shape</h2>
+        <p class="specimen-num">Specimen 01 — Ambient occlusion</p>
+        <h2 class="specimen-title">Crevices get less light</h2>
         <div class="lesson">
-          <p>UV coordinates map each 3D point to a pixel on a flat image.</p>
-          <p>A checker grid shows stretch and seams.</p>
-          <p>Same map on a sphere and a box.</p>
-          <p>The flat layout is the unwrap beside the 3D view.</p>
+          <p>Open surfaces get light from many sides.</p>
+          <p>In a crevice, the walls block most of that light.</p>
+          <p>An AO map stores how open each point is. White is open. Black is closed.</p>
+          <p>Dirt and shadow collect in the same dark places.</p>
         </div>
         <div class="try">
           <strong>Try this</strong>
-          <p>Toggle Flat layout. Find where the checker lines bend on the sphere. That bend is stretch.</p>
+          <p>Turn the AO map off. The grooves look flat and clean. Turn it back on and drag AO strength. Then press Show the map to see the grey image itself.</p>
         </div>
-        <div class="chips" role="group" aria-label="UV view toggles">
-          <button type="button" class="chip" data-uv="flat" aria-pressed="false">Flat layout</button>
-          <button type="button" class="chip" data-uv="sphere" aria-pressed="true">Focus sphere</button>
-          <button type="button" class="chip" data-uv="box" aria-pressed="false">Focus box</button>
+        <div class="chips" role="group" aria-label="AO toggles">
+          <button type="button" class="chip" data-ao="on" aria-pressed="true">AO map</button>
+          <button type="button" class="chip" data-ao="view" aria-pressed="false">Show the map</button>
+        </div>
+        <div class="ctrls" style="margin-top:1rem">
+          <label class="ctrl">AO strength
+            <input id="ao-int" type="range" min="0" max="1" step="0.01" value="1" />
+            <output id="ao-int-out" for="ao-int">1.00</output>
+          </label>
         </div>
       </aside>
     </section>
 
     <section class="specimen" id="s02">
       <div class="view-wrap">
-        <div class="view" data-scene="maps" tabindex="0" aria-label="Albedo and roughness specimen: 3D view. Drag to turn."></div>
+        <div class="view" data-scene="edges" tabindex="0" aria-label="Painted metal blocks with edge wear: 3D view. Drag to turn, or rub when Rub is on."></div>
       </div>
       <aside class="placard">
-        <p class="specimen-num">Specimen 02 — Albedo &amp; roughness</p>
-        <h2 class="specimen-title">Color map vs roughness map</h2>
+        <p class="specimen-num">Specimen 02 — Edge wear</p>
+        <h2 class="specimen-title">Paint chips on the edges first</h2>
         <div class="lesson">
-          <p>An albedo map paints color on the surface.</p>
-          <p>A roughness map paints how sharp the shine is.</p>
-          <p>Same wood pattern. Different jobs.</p>
-          <p>Turn each map off to see what it contributes.</p>
+          <p>Sharp edges stick out. Hands, tools, and boots hit them first.</p>
+          <p>The paint there wears through to the metal below.</p>
+          <p>A curvature mask finds the edges. White means edge.</p>
+          <p>A thin band of red primer shows at the border of each chip.</p>
         </div>
         <div class="try">
           <strong>Try this</strong>
-          <p>Turn Albedo off. The wood color vanishes. Then turn Roughness off. The worn shine becomes even.</p>
+          <p>Drag Use from 0 to 1. Chips start on the corners, then run along the edges. Then turn on Rub and drag on the blocks to wear them by hand.</p>
         </div>
-        <div class="chips" role="group" aria-label="Map toggles">
-          <button type="button" class="chip" data-map="albedo" aria-pressed="true">Albedo</button>
-          <button type="button" class="chip" data-map="rough" aria-pressed="true">Roughness</button>
-          <button type="button" class="chip" data-map="wood" aria-pressed="true">Wood</button>
-          <button type="button" class="chip" data-map="marble" aria-pressed="false">Marble</button>
+        <div class="chips" role="group" aria-label="Edge wear toggles">
+          <button type="button" class="chip" data-edge="mask" aria-pressed="false">Show edge mask</button>
+          <button type="button" class="chip" data-rub="on" aria-pressed="false">Rub</button>
+        </div>
+        <div class="ctrls" style="margin-top:1rem">
+          <label class="ctrl">Use
+            <input id="wear-use" type="range" min="0" max="1" step="0.01" value="0.55" />
+            <output id="wear-use-out" for="wear-use">0.55</output>
+          </label>
         </div>
       </aside>
     </section>
 
-    <section class="specimen centerpiece" id="s03">
+    <section class="specimen" id="s03">
+      <div class="view-wrap">
+        <div class="view" data-scene="tiles" tabindex="0" aria-label="Concrete floor made from one repeated image: 3D view. Drag to turn."></div>
+      </div>
+      <aside class="placard">
+        <p class="specimen-num">Specimen 03 — Tiling</p>
+        <h2 class="specimen-title">A small image repeats</h2>
+        <div class="lesson">
+          <p>One small image covers a big floor by repeating.</p>
+          <p>Each copy is the same. Stains and cracks line up in a grid.</p>
+          <p>Your eye finds the pattern fast.</p>
+          <p>Artists hide the grid. They blend in a second copy with a random shift.</p>
+        </div>
+        <div class="try">
+          <strong>Try this</strong>
+          <p>Raise Tiles to 12. Find the same stain again and again. Then turn on Break the grid. The stains stop lining up.</p>
+        </div>
+        <div class="chips" role="group" aria-label="Tiling toggles">
+          <button type="button" class="chip" data-tile="break" aria-pressed="false">Break the grid</button>
+        </div>
+        <div class="ctrls" style="margin-top:1rem">
+          <label class="ctrl">Tiles
+            <input id="tile-count" type="range" min="2" max="16" step="1" value="6" />
+            <output id="tile-count-out" for="tile-count">6</output>
+          </label>
+        </div>
+      </aside>
+    </section>
+
+    <section class="specimen centerpiece" id="s04">
       <div class="views">
         <div class="view-pane">
-          <div class="view-label">Normal map · fake bumps</div>
-          <div class="view" data-scene="normal" tabindex="0" aria-label="Normal map side"></div>
+          <div class="view-label">New</div>
+          <div class="view" data-scene="cmp-new" tabindex="0" aria-label="New toolbox. Drag to turn."></div>
         </div>
         <div class="view-pane">
-          <div class="view-label">Displacement · real geometry</div>
-          <div class="view" data-scene="displace" tabindex="0" aria-label="Displacement side"></div>
+          <div class="view-label" id="cmp-used-label">Used</div>
+          <div class="view" data-scene="cmp-used" tabindex="0" aria-label="Used toolbox. Drag to turn."></div>
         </div>
       </div>
       <aside class="placard">
         <div>
-          <p class="specimen-num">Specimen 03 — Centerpiece</p>
-          <h2 class="specimen-title">Fake bumps vs moved vertices</h2>
+          <p class="specimen-num">Specimen 04 — Centerpiece</p>
+          <h2 class="specimen-title">One slider ages everything</h2>
           <div class="lesson">
-            <p>Left: a normal map bends lighting. The mesh stays smooth.</p>
-            <p>Right: displacement moves vertices. The mesh gains real height.</p>
-            <p>A key light orbits both.</p>
-            <p>Only displacement changes the silhouette.</p>
+            <p>Left: new. Clean paint and sharp shine.</p>
+            <p>Right: the same toolbox after use.</p>
+            <p>Age adds dirt in the crevices, wears the edges to metal, and dulls the paint.</p>
+            <p>One number drives all three, because use causes all three.</p>
           </div>
         </div>
         <div>
           <div class="try">
             <strong>Try this</strong>
-            <p>Watch the outlines for ten seconds. Then toggle Silhouette. Ask: which finish would cast a bumpy shadow?</p>
+            <p>Drag Age slowly. Watch where change starts: the corners, the lid seam, and the base. Ask: where does your hand touch a toolbox most?</p>
           </div>
           <div class="chips" role="group" aria-label="Centerpiece toggles">
-            <button type="button" class="chip" data-nd="silhouette" aria-pressed="false">Silhouette</button>
-            <button type="button" class="chip" data-nd="orbit" aria-pressed="true">Orbit light</button>
+            <button type="button" class="chip" data-cmp="spin" aria-pressed="true">Turntable</button>
           </div>
           <div class="ctrls" style="margin-top:1rem">
-            <label class="ctrl">Bump strength
-              <input id="nd-strength" type="range" min="0" max="1" step="0.01" value="0.85" />
-              <output id="nd-strength-out" for="nd-strength">0.85</output>
+            <label class="ctrl">Age
+              <input id="cmp-age" type="range" min="0" max="1" step="0.01" value="0.8" />
+              <output id="cmp-age-out" for="cmp-age">0.80</output>
             </label>
           </div>
-        </div>
-      </aside>
-    </section>
-
-    <section class="specimen" id="s04">
-      <div class="view-wrap">
-        <div class="view" data-scene="weather" tabindex="0" aria-label="Weathering specimen: 3D view. Drag to turn."></div>
-      </div>
-      <aside class="placard">
-        <p class="specimen-num">Specimen 04 — Weathering</p>
-        <h2 class="specimen-title">Clean metal ages into rust</h2>
-        <div class="lesson">
-          <p>A procedural noise mask picks where rust grows.</p>
-          <p>Age drives the mask from 0 to 1.</p>
-          <p>Color, roughness, and metalness change together.</p>
-          <p>This is how games and product renders fake corrosion.</p>
-        </div>
-        <div class="try">
-          <strong>Try this</strong>
-          <p>Drag Age from 0 to 1. Watch rust crawl from the noise valleys first.</p>
-        </div>
-        <div class="ctrls">
-          <label class="ctrl">Age
-            <input id="age" type="range" min="0" max="1" step="0.01" value="0.45" />
-            <output id="age-out" for="age">0.45</output>
-          </label>
         </div>
       </aside>
     </section>
@@ -832,31 +866,31 @@
         <div class="teach-card">
           <h3>Learning objectives</h3>
           <ul>
-            <li>Explain what UV coordinates do on a simple solid.</li>
-            <li>Separate albedo (color) from roughness (shine variation).</li>
-            <li>Contrast normal maps (fake bumps) with displacement (real geometry).</li>
-            <li>Describe weathering as a mask that drives several material channels.</li>
+            <li>Explain why crevices look darker and dirtier than open surfaces.</li>
+            <li>Predict where paint wears first on a used object.</li>
+            <li>Spot texture repetition and name one way to hide it.</li>
+            <li>Describe age as one cause that changes several material properties together.</li>
           </ul>
         </div>
         <div class="teach-card">
           <h3>10-minute classroom activity</h3>
-          <p>1) Bring a cereal box. 2) Students sketch the six faces as a cross (UV unwrap) and draw a logo on one face. 3) Open Specimen 01 and match where the logo would land on a box. 4) Finish on Specimen 03: write one sentence on why a normal-map brick wall would cast a flat shadow.</p>
+          <p>1) Pick a well-used object: a door handle, a stair edge, a desk corner, or an old toolbox. 2) Students sketch it. They mark dirt in one color and wear in another. 3) Compare the marks with Specimens 01 and 02. 4) Finish on Specimen 04: set Age to match the real object, and write one sentence on what caused each mark.</p>
         </div>
         <div class="map-cols">
           <div class="teach-card">
             <h3>Art &amp; design map</h3>
-            <p>Game texturing, product finishes, concept look-dev, UV layout for packaging and sculpture wraps.</p>
+            <p>Game art and prop design, product aging and patina, weathering in model-making and miniatures, film set dressing.</p>
           </div>
           <div class="teach-card">
             <h3>Materials science map</h3>
-            <p>Surface roughness variation, corrosion / oxidation fronts, coating wear, topography vs optical illusion of depth.</p>
+            <p>Abrasion and contact wear, coating adhesion and chipping, how dust settles in corners with little air flow, why worn metal edges polish bright.</p>
           </div>
         </div>
       </div>
     </section>
 
     <footer>
-      <div>How Textures Work · Lesson 02 · Materials · <a href="https://how-surfaces-work-production.up.railway.app/">Series · Surfaces</a></div>
+      <div>How Wear Shows · Lesson 04 · Materials · <a href="https://how-surfaces-work-production.up.railway.app/">Lesson 01</a> · <a href="/">Lesson 02</a> · <a href="https://how-surfaces-work-preview-production.up.railway.app/sheen/">Lesson 03</a></div>
       <div><a href="#top">Back to top</a></div>
     </footer>
   </div>
