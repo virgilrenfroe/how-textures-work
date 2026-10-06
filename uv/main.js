@@ -12,12 +12,14 @@ function showErr(msg) {
 window.addEventListener('error', (e) => showErr(e.message || e.error || e));
 window.addEventListener('unhandledrejection', (e) => showErr(e.reason));
 
-let reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reduceMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
+let reducedMotion = reduceMQ.matches;
+const syncReduced = () => { reducedMotion = reduceMQ.matches; };
 try {
-  window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', (e) => {
-    reducedMotion = e.matches;
-  });
-} catch (_) { /* older Safari */ }
+  reduceMQ.addEventListener('change', syncReduced);
+} catch (_) {
+  try { reduceMQ.addListener(syncReduced); } catch (__) { /* older Safari */ }
+}
 
 const coarseMQ = window.matchMedia('(pointer: coarse)');
 const isMobile = () => window.innerWidth < 700 || coarseMQ.matches;
@@ -674,6 +676,7 @@ let last = performance.now();
 function render(now) {
   requestAnimationFrame(render);
   if (document.hidden) return;
+  syncReduced();
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   frameCount += 1;
