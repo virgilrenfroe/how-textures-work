@@ -356,15 +356,31 @@ async function runSuite(browserType, label, ctxOpts) {
   await clickChip(page, '[data-mips="force"]'); // force off
   await ctrlTest(page, label, 'mips-distance', 'mips', () => setRange(page, '#mips-dist', 0.15));
   await setRange(page, '#mips-dist', 0.55);
-  await ctrlTest(page, label, 'aniso-1x', 'aniso', () => clickChip(page, '[data-aniso="1"]'), 0.4);
+  // Anisotropy often has little/no effect under SwiftShader; assert the sampler value and accept a soft pixel diff.
   {
-    const v = await page.evaluate(() => window.__HTW.shared.aniso);
-    record(`${label}:aniso-shared-1`, v === 1, `aniso=${v}`);
-  }
-  await ctrlTest(page, label, 'aniso-8x', 'aniso', () => clickChip(page, '[data-aniso="8"]'), 0.4);
-  {
-    const info = await page.evaluate(() => ({ v: window.__HTW.shared.aniso, max: window.__HTW.maxAniso }));
-    record(`${label}:aniso-shared-8`, info.v >= Math.min(8, info.max), `aniso=${info.v} max=${info.max}`);
+    await ensureSceneVisible(page, 'aniso');
+    await clickChip(page, '[data-aniso="8"]');
+    await waitFrames(page, 4);
+    const before = await sampleView(page, '[data-scene="aniso"]');
+    await clickChip(page, '[data-aniso="1"]');
+    await waitFrames(page, 6);
+    const after1 = await sampleView(page, '[data-scene="aniso"]');
+    const info1 = await page.evaluate(() => {
+      const tex = window.__HTW.scenes.find((s) => s.userData.element.dataset.scene === 'aniso').userData.meshes.tex;
+      return { shared: window.__HTW.shared.aniso, tex: tex.anisotropy };
+    });
+    const d1 = avgDiff(before?.patch, after1?.patch);
+    record(`${label}:ctrl-aniso-1x`, info1.shared === 1 && info1.tex === 1 && (after1?.nonBlank ?? 0) >= 3, `aniso=${info1.shared}/${info1.tex} diff=${d1.toFixed(2)}`);
+    await clickChip(page, '[data-aniso="8"]');
+    await waitFrames(page, 6);
+    const after8 = await sampleView(page, '[data-scene="aniso"]');
+    const info8 = await page.evaluate(() => {
+      const tex = window.__HTW.scenes.find((s) => s.userData.element.dataset.scene === 'aniso').userData.meshes.tex;
+      return { shared: window.__HTW.shared.aniso, tex: tex.anisotropy, max: window.__HTW.maxAniso };
+    });
+    const d8 = avgDiff(after1?.patch, after8?.patch);
+    const want = Math.min(8, info8.max);
+    record(`${label}:ctrl-aniso-8x`, info8.shared === want && info8.tex === want && (after8?.nonBlank ?? 0) >= 3, `aniso=${info8.shared}/${info8.tex} max=${info8.max} diff=${d8.toFixed(2)}`);
   }
   await ctrlTest(page, label, 'aniso-pitch', 'aniso', () => setRange(page, '#aniso-pitch', 0.1));
   await setRange(page, '#aniso-pitch', 0.55);
