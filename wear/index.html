@@ -736,6 +736,59 @@
       .age-note { font-size: 9.5px; }
       footer { margin-bottom: 76px; }
     }
+  
+    .real-world {
+      border-top: 1px solid var(--line);
+      padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 4vw, 3rem);
+      scroll-margin-top: 1rem;
+    }
+    .rw-head { max-width: 62ch; margin-bottom: clamp(1.1rem, 3vw, 1.75rem); }
+    .rw-title {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: clamp(2.1rem, 5.2vw, 3.5rem);
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin: 0 0 0.75rem;
+    }
+    .rw-title.wear-type { margin-top: -0.2em; margin-bottom: calc(0.75rem - 0.2em); }
+    .rw-head .lede { color: var(--mute); margin: 0; max-width: 52ch; }
+    .rw-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.85rem;
+    }
+    @media (max-width: 1080px) { .rw-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 640px) { .rw-list { grid-template-columns: minmax(0, 1fr); } }
+    .rw-item {
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--accent);
+      border-radius: 14px;
+      padding: 1rem 1.1rem 1.1rem;
+      background: var(--card);
+      min-width: 0;
+    }
+    .rw-setting {
+      display: block;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--steel);
+      margin-bottom: 0.4rem;
+    }
+    .rw-job {
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 1.12rem;
+      letter-spacing: -0.01em;
+      margin: 0 0 0.45rem;
+      color: var(--cream);
+    }
+    .rw-item p { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--cream); }
   </style>
   <script type="importmap">
   {
@@ -918,6 +971,40 @@
           </div>
         </div>
       </aside>
+    </section>
+
+    <section class="real-world" id="real-world" aria-labelledby="rw-title">
+      <div class="rw-head">
+        <h2 class="rw-title wear-type" id="rw-title">Where you see this</h2>
+        <p class="lede">Real people in real jobs fake wear and dirt on purpose, or plan for it. Here is where the ideas from this lesson show up.</p>
+      </div>
+      <ul class="rw-list">
+        <li class="rw-item">
+          <span class="rw-setting">Game and film props</span>
+          <h3 class="rw-job">Texture artist</h3>
+          <p>A texture artist paints the dirt and wear maps for props such as crates, tools, and vehicles. They use an ambient occlusion map to put grime in the crevices and an edge mask to chip paint off the corners, just like Specimens 01 and 02.</p>
+        </li>
+        <li class="rw-item">
+          <span class="rw-setting">Game worlds</span>
+          <h3 class="rw-job">Environment artist</h3>
+          <p>An environment artist builds large floors, walls, and landscapes from small textures that repeat. They break up the visible grid with blended second layers, rotated tiles, and small details like cracks and stains, so players do not notice the pattern, as in Specimen 03.</p>
+        </li>
+        <li class="rw-item">
+          <span class="rw-setting">Film and animation</span>
+          <h3 class="rw-job">Look-development artist</h3>
+          <p>A look-development artist decides how new or worn each object should look on screen. One age or wear control, like the slider in Specimen 04, lets them show a prop shiny and new early in a story and battered later on.</p>
+        </li>
+        <li class="rw-item">
+          <span class="rw-setting">Architecture</span>
+          <h3 class="rw-job">Architectural visualization artist</h3>
+          <p>An architectural visualization artist covers floors and walls with tiling textures of tile, wood, and concrete. They hide the repeats and add gentle aging, such as darker corners and worn paths across a floor, so a room looks lived in.</p>
+        </li>
+        <li class="rw-item">
+          <span class="rw-setting">Product design</span>
+          <h3 class="rw-job">CMF designer (color, material, and finish)</h3>
+          <p>A CMF designer chooses the paints, coatings, and surface textures for real products. They think about where hands will rub and edges will scrape, and pick finishes that still look good after years of that wear.</p>
+        </li>
+      </ul>
     </section>
 
     <section class="teachers" id="teachers">

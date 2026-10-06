@@ -62,3 +62,7 @@ Hero: the worn toolbox (age 0.82) through the shared Hero v3 halftone post (tran
 Constraints, the same as the rest of the series: one canvas `#c` with scissor regions, DPR cap 1.5 mobile / 2 desktop, offscreen skip, hidden-tab pause, live reduced motion, ACES + sRGB, procedural textures only, and sliders bound to both `input` and `change`.
 
 QA: `qa-wear.mjs` (Playwright 1.63; Chromium desktop 1440×900, Chromium mobile 390×844 DPR3 touch, WebKit mobile). Run it with `BASE=<preview>/wear/ ROOT=<preview>/ node qa-wear.mjs`.
+
+### "Where you see this" sections (Lessons 02 and 04)
+
+Both lesson pages now carry a short real-world section (`#real-world`) between the last specimen and "For teachers": five entries, each naming a setting, a job title, and why the lesson's idea matters to that job. Entry text is plain DOM text and is never worn. On Lesson 04 the section heading (`.rw-title.wear-type`) joins the worn display headings driven by the Age pill. Layout is a 3-column grid on desktop, 2 under 1080px, and 1 under 640px. No new canvas. `qa-wear.mjs` checks placement, entry count and completeness, crisp entry text, no overflow, no horizontal scroll, and the audience-lock scan on both pages (`ONLY=root` runs the Lesson 02 checks alone).

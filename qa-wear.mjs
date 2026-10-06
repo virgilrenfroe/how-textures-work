@@ -107,7 +107,9 @@ async function ctrlTest(page, label, id, scene, act, minDiff = 1.5) {
 // —— Type wear helpers ——
 const TYPE_OUT = path.join(OUT, 'type');
 fs.mkdirSync(TYPE_OUT, { recursive: true });
-const HEADINGS = ['.hero h1', '#s01 .specimen-title', '#s02 .specimen-title', '#s03 .specimen-title', '#s04 .specimen-title'];
+const HEADINGS = ['.hero h1', '#s01 .specimen-title', '#s02 .specimen-title', '#s03 .specimen-title', '#s04 .specimen-title', '#real-world .rw-title'];
+const RW_OUT = path.join(OUT, 'realworld');
+fs.mkdirSync(RW_OUT, { recursive: true });
 const BODY = ['.hero-sub', '#s01 .lesson p:first-child', '#s02 .try p', '#s04 .lesson p:nth-child(2)', '#s03 .lesson p:nth-child(2)'];
 
 async function setAge(page, v) {
@@ -261,6 +263,88 @@ async function reducedMotionCheck(browserType, label, viewportOpts) {
   await browser.close();
 }
 
+async function audienceScan(page) {
+  return page.evaluate(() => {
+    const parts = [document.body.innerText, document.title];
+    document.querySelectorAll('[aria-label]').forEach((e) => parts.push(e.getAttribute('aria-label')));
+    document.querySelectorAll('meta[content]').forEach((e) => parts.push(e.getAttribute('content')));
+    const t = parts.join(' \n ').toLowerCase();
+    const banned = [/webgl/, /\bdpr\b/, /three\.js/, /reduced[- ]motion/, /frame ?rate/, /\bfps\b/, /virgil/, /\bqa\b/, /context lost/, /shader/, /scissor/, /render target/, /onbeforecompile/, /\btodo\b/, /lorem/];
+    return banned.filter((b) => b.test(t)).map(String);
+  });
+}
+
+async function realWorldChecks(page, label, pageName) {
+  const r = await page.evaluate(() => {
+    const sec = document.getElementById('real-world');
+    if (!sec) return { exists: false };
+    const all = [...document.querySelectorAll('main section, body section')];
+    const idx = all.indexOf(sec);
+    const specIdx = all.map((e, i) => (e.classList.contains('specimen') ? i : -1)).filter((i) => i >= 0);
+    const teach = all.indexOf(document.getElementById('teachers'));
+    const items = [...sec.querySelectorAll('.rw-item')].map((li) => {
+      const p = li.querySelector('p');
+      const cs = getComputedStyle(p);
+      return {
+        setting: li.querySelector('.rw-setting')?.textContent.trim() || '',
+        job: li.querySelector('.rw-job')?.textContent.trim() || '',
+        text: p?.textContent.trim() || '',
+        overflow: li.scrollWidth > li.clientWidth + 1,
+        crisp: cs.backgroundImage === 'none' && !/transparent|rgba\(0, 0, 0, 0\)/.test(cs.webkitTextFillColor || '') && !li.querySelector('.is-worn'),
+        fontPx: parseFloat(cs.fontSize),
+      };
+    });
+    const sr = sec.getBoundingClientRect();
+    return {
+      exists: true,
+      title: sec.querySelector('h2')?.textContent.trim(),
+      afterSpecimens: specIdx.length > 0 && idx > Math.max(...specIdx),
+      beforeTeachers: teach < 0 || idx < teach,
+      inViewportWidth: sr.left >= -1 && sr.right <= document.documentElement.clientWidth + 1,
+      items,
+    };
+  });
+  record(`${label}:rw-exists-${pageName}`, r.exists && r.title === 'Where you see this', r.title || 'missing');
+  if (!r.exists) return;
+  record(`${label}:rw-placement-${pageName}`, r.afterSpecimens && r.beforeTeachers, `afterSpecimens=${r.afterSpecimens} beforeTeachers=${r.beforeTeachers}`);
+  const n = r.items.length;
+  const complete = r.items.every((it) => it.setting && it.job && /[.!?]$/.test(it.text) && it.text.split(/\s+/).length >= 12);
+  record(`${label}:rw-entries-${pageName}`, n >= 3 && n <= 5 && complete, `count=${n} complete=${complete}`);
+  record(`${label}:rw-crisp-${pageName}`, r.items.every((it) => it.crisp && it.fontPx >= 14), r.items.map((it) => it.fontPx).join(','));
+  record(`${label}:rw-no-overflow-${pageName}`, r.inViewportWidth && r.items.every((it) => !it.overflow));
+  await page.evaluate(() => document.getElementById('real-world').scrollIntoView({ block: 'start', behavior: 'instant' }));
+  await page.waitForTimeout(700);
+  await page.locator('#real-world').screenshot({ path: path.join(RW_OUT, `${label}-${pageName}.png`) });
+}
+
+async function runRootSuite(browserType, label, viewportOpts) {
+  console.log(`\n===== ${label} Lesson 02 root =====`);
+  const isWebKit = browserType.name() === 'webkit';
+  const browser = await browserType.launch({ args: isWebKit ? [] : ['--use-gl=angle', '--use-angle=swiftshader', '--enable-webgl', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+  const context = await browser.newContext({ ...viewportOpts });
+  const page = await context.newPage();
+  page.setDefaultTimeout(120000);
+  const errs = [];
+  page.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
+  page.on('pageerror', (e) => errs.push(String(e)));
+  const resp = await page.goto(ROOT, { waitUntil: 'networkidle', timeout: 90000 });
+  record(`${label}:l02-load`, !!(resp && resp.ok()), `status=${resp?.status()}`);
+  await page.waitForFunction(() => window.__HTW && window.__HTW.frameCount > 3, null, { timeout: 60000 }).catch(() => {});
+  await page.evaluate(async () => { await document.fonts.ready; });
+  const nC = await page.evaluate(() => document.querySelectorAll('canvas').length);
+  record(`${label}:l02-one-canvas`, nC === 1, `count=${nC}`);
+  const h = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  record(`${label}:l02-no-hscroll`, !h);
+  const bad = await audienceScan(page);
+  record(`${label}:l02-audience-lock`, bad.length === 0, bad.join(','));
+  await realWorldChecks(page, label, 'lesson02');
+  const h2 = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  record(`${label}:l02-no-hscroll-after-scroll`, !h2);
+  const realErrs = errs.filter((t) => !/swiftshader|GroupMarkerNotSet|GPU stall|ReadPixels|Automatic fallback/i.test(t));
+  record(`${label}:l02-no-console-errors`, realErrs.length === 0, realErrs.slice(0, 3).join(' | '));
+  await browser.close();
+}
+
 async function runSuite(browserType, label, viewportOpts) {
   const vw = viewportOpts.viewport.width, vh = viewportOpts.viewport.height;
   console.log(`\n===== ${label} ${vw}x${vh} =====`);
@@ -288,14 +372,7 @@ async function runSuite(browserType, label, viewportOpts) {
   const cap = vw < 700 ? 1.5 : 2;
   record(`${label}:dpr-cap`, dpr <= cap + 1e-6, `pixelRatio=${dpr} cap=${cap}`);
 
-  const badCopy = await page.evaluate(() => {
-    const parts = [document.body.innerText, document.title];
-    document.querySelectorAll('[aria-label]').forEach((e) => parts.push(e.getAttribute('aria-label')));
-    document.querySelectorAll('meta[content]').forEach((e) => parts.push(e.getAttribute('content')));
-    const t = parts.join(' \n ').toLowerCase();
-    const banned = [/webgl/, /\bdpr\b/, /three\.js/, /reduced[- ]motion/, /frame ?rate/, /\bfps\b/, /virgil/, /\bqa\b/, /context lost/, /shader/, /scissor/, /render target/, /onbeforecompile/];
-    return banned.filter((b) => b.test(t)).map(String);
-  });
+  const badCopy = await audienceScan(page);
   record(`${label}:audience-lock`, badCopy.length === 0, badCopy.join(','));
   const kicker = (await page.locator('.hero-kicker').textContent())?.trim();
   record(`${label}:kicker`, kicker === 'Lesson 04 · Materials', kicker);
@@ -475,12 +552,15 @@ async function runSuite(browserType, label, viewportOpts) {
   }
 
   await typeWearChecks(page, context, label, vw < 700);
+  await realWorldChecks(page, label, 'lesson04');
+  const hs2 = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
+  record(`${label}:no-hscroll-end`, !hs2);
 
   // —— Screenshots ——
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(900);
   await page.screenshot({ path: path.join(OUT, `${label}-hero.png`) });
-  for (const id of ['s01', 's02', 's03', 's04', 'teachers']) {
+  for (const id of ['s01', 's02', 's03', 's04', 'real-world', 'teachers']) {
     await page.evaluate((id) => document.getElementById(id).scrollIntoView({ block: 'start' }), id);
     await page.waitForTimeout(900);
     await page.screenshot({ path: path.join(OUT, `${label}-${id}.png`) });
@@ -511,11 +591,17 @@ async function checkSeriesLinks() {
   await browser.close();
 }
 
-const only = process.env.ONLY || 'desk,phone,webkit,links';
+const only = process.env.ONLY || 'desk,phone,webkit,root,links';
 if (only.includes('desk')) await runSuite(chromium, 'chromium-desk', { viewport: { width: 1440, height: 900 } });
 if (only.includes('phone')) await runSuite(chromium, 'chromium-phone', { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, hasTouch: true, isMobile: true });
 if (only.includes('webkit')) await runSuite(webkit, 'webkit-phone', { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, hasTouch: true, isMobile: true });
 if (only.includes('desk')) await reducedMotionCheck(chromium, 'chromium-desk-rm', { viewport: { width: 1440, height: 900 } });
+const PHONE = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, hasTouch: true, isMobile: true };
+if (only.includes('root')) {
+  await runRootSuite(chromium, 'chromium-desk', { viewport: { width: 1440, height: 900 } });
+  await runRootSuite(chromium, 'chromium-phone', PHONE);
+  await runRootSuite(webkit, 'webkit-phone', PHONE);
+}
 if (only.includes('links')) await checkSeriesLinks();
 
 const pass = results.filter((r) => r.pass).length;

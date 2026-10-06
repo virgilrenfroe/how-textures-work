@@ -644,6 +644,59 @@
       .series-nav { padding-top: 0.75rem; }
     }
 
+  
+    .real-world {
+      border-top: 1px solid var(--line);
+      padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 4vw, 3rem);
+      scroll-margin-top: 1rem;
+    }
+    .rw-head { max-width: 62ch; margin-bottom: clamp(1.1rem, 3vw, 1.75rem); }
+    .rw-title {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: clamp(2.1rem, 5.2vw, 3.5rem);
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin: 0 0 0.75rem;
+    }
+    .rw-title.wear-type { margin-top: -0.2em; margin-bottom: calc(0.75rem - 0.2em); }
+    .rw-head .lede { color: var(--mute); margin: 0; max-width: 52ch; }
+    .rw-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.85rem;
+    }
+    @media (max-width: 1080px) { .rw-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 640px) { .rw-list { grid-template-columns: minmax(0, 1fr); } }
+    .rw-item {
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--accent);
+      border-radius: 14px;
+      padding: 1rem 1.1rem 1.1rem;
+      background: var(--card);
+      min-width: 0;
+    }
+    .rw-setting {
+      display: block;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--steel);
+      margin-bottom: 0.4rem;
+    }
+    .rw-job {
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 1.12rem;
+      letter-spacing: -0.01em;
+      margin: 0 0 0.45rem;
+      color: var(--cream);
+    }
+    .rw-item p { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--cream); }
   </style>
   <script type="importmap">
   {
@@ -821,6 +874,40 @@
           </label>
         </div>
       </aside>
+    </section>
+
+    <section class="real-world" id="real-world" aria-labelledby="rw-title">
+      <div class="rw-head">
+        <h2 class="rw-title" id="rw-title">Where you see this</h2>
+        <p class="lede">Real people in real jobs use these maps every day. Here is where the ideas from this lesson show up.</p>
+      </div>
+      <ul class="rw-list">
+        <li class="rw-item">
+          <span class="rw-setting">Games</span>
+          <h3 class="rw-job">Texture artist</h3>
+          <p>A texture artist paints the color, roughness, and normal maps that wrap onto a character or prop through its UVs. A normal map lets a simple model show stitches, scratches, and rivets without adding extra shape that would slow the game down.</p>
+        </li>
+        <li class="rw-item">
+          <span class="rw-setting">Film and animation</span>
+          <h3 class="rw-job">Look-development artist</h3>
+          <p>A look-development artist decides how every surface in a shot reacts to light, and uses roughness maps to set where a costume or prop is shiny and where it is dull. For close-ups they often use displacement, so the bumps really change the shape and cast true shadows.</p>
+        </li>
+        <li class="rw-item">
+          <span class="rw-setting">Online stores</span>
+          <h3 class="rw-job">3D product visualization artist</h3>
+          <p>A 3D product visualization artist makes product pictures from 3D models instead of photos. Keeping color and roughness as separate maps lets a matte label, a glossy cap, and brushed metal each catch light the way the real product does.</p>
+        </li>
+        <li class="rw-item">
+          <span class="rw-setting">Car paint and fabric</span>
+          <h3 class="rw-job">Automotive visualization artist</h3>
+          <p>An automotive visualization artist builds digital car paint, leather, and seat fabric for car configurators and advertisements. Fine normal or bump maps carry the weave of a fabric and the grain of leather, and roughness controls how sharp the reflections in the paint look.</p>
+        </li>
+        <li class="rw-item">
+          <span class="rw-setting">Architecture</span>
+          <h3 class="rw-job">Architectural visualization artist</h3>
+          <p>An architectural visualization artist shows buildings before they are built. Height and normal maps give brick, stone, and wood real-looking depth, and weathering masks add rust stains and water marks so a design does not look fake-new.</p>
+        </li>
+      </ul>
     </section>
 
     <section class="teachers" id="teachers">

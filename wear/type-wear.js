@@ -3,7 +3,7 @@
 // convex corners and terminals first, then along edges: paint → primer → steel.
 // The heading stays real DOM text; only its fill is replaced by a generated image.
 
-const SEL = '.hero h1, .specimen-title';
+const SEL = '.hero h1, .specimen-title, .rw-title.wear-type';
 const STEPS = [0, 0.33, 0.66, 1];
 const mqCoarse = window.matchMedia('(pointer: coarse)');
 const mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
