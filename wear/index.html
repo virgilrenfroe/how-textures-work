@@ -673,6 +673,74 @@
     .view[data-scene="tiles"] { cursor: grab; }
     .view.rubbing { cursor: crosshair; }
     .chip[data-rub][aria-pressed="true"] { box-shadow: 0 0 0 2px rgba(255, 176, 46, 0.35); }
+  
+    /* —— Worn type: the heading stays real text; only its fill is swapped —— */
+    .wear-type {
+      padding-top: 0.2em;
+      padding-bottom: 0.2em;
+      pointer-events: auto;
+      transition: none;
+    }
+    .hero h1.wear-type { margin-top: -0.2em; margin-bottom: calc(1.25rem - 0.2em); }
+    .specimen-title.wear-type { margin-top: -0.2em; margin-bottom: -0.2em; }
+    .wear-type.is-worn {
+      background-repeat: no-repeat;
+      background-origin: border-box;
+      background-position: 0 0;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .wear-type.is-worn em { -webkit-text-fill-color: transparent; text-shadow: none; }
+    .wear-type.is-worn::selection, .wear-type.is-worn *::selection {
+      -webkit-text-fill-color: var(--paper);
+      background: rgba(255, 176, 46, 0.4);
+    }
+    .age-dock {
+      position: fixed;
+      right: clamp(10px, 2vw, 22px);
+      bottom: clamp(10px, 2vw, 18px);
+      z-index: 30;
+      display: grid;
+      gap: 0.3rem;
+      justify-items: end;
+      pointer-events: none;
+      font-family: var(--mono);
+    }
+    .age-pill {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.45rem 0.85rem;
+      border: 1px solid var(--accent);
+      border-radius: 999px;
+      background: rgba(12, 10, 8, 0.9);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(255, 176, 46, 0.12);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .age-pill input[type="range"] { width: clamp(110px, 16vw, 180px); accent-color: var(--accent); margin: 0; }
+    .age-pill output { color: var(--paper); min-width: 3.2ch; text-align: right; }
+    .age-note {
+      margin: 0;
+      max-width: 34ch;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      background: rgba(12, 10, 8, 0.82);
+      font-size: 10.5px;
+      letter-spacing: 0.04em;
+      color: var(--cream, #e8dfd0);
+      text-align: right;
+    }
+    @media (max-width: 700px) {
+      .age-dock { left: 10px; right: 10px; justify-items: stretch; }
+      .age-pill { justify-content: space-between; }
+      .age-pill input[type="range"] { flex: 1; width: auto; }
+      .age-note { max-width: none; text-align: center; }
+    }
   </style>
   <script type="importmap">
   {
@@ -697,12 +765,12 @@
     <nav class="series-nav" style="gap:0.45rem;flex-wrap:wrap">
       <a href="https://how-surfaces-work-production.up.railway.app/">Lesson 01 · Surfaces</a>
       <a href="/">Lesson 02 · Textures</a>
-      <a href="https://how-surfaces-work-preview-production.up.railway.app/sheen/">Lesson 03 · Soft</a>
+      <a href="https://how-surfaces-work-production.up.railway.app/sheen/">Lesson 03 · Soft</a>
     </nav>
     <header class="hero" id="top">
       <div class="hero-copy">
         <p class="hero-kicker">Lesson 04 · Materials</p>
-        <h1>How <em>Wear</em> Shows</h1>
+        <h1 class="wear-type">How <em>Wear</em> Shows</h1>
         <p class="hero-sub">A materials lab on dirt, chipped paint, and worn floors. Use leaves marks in the same places every time. Learn to see them.</p>
         <div class="hero-meta">
           <div>Time <span>20 min</span></div>
@@ -734,7 +802,7 @@
       </div>
       <aside class="placard">
         <p class="specimen-num">Specimen 01 — Ambient occlusion</p>
-        <h2 class="specimen-title">Crevices get less light</h2>
+        <h2 class="specimen-title wear-type">Crevices get less light</h2>
         <div class="lesson">
           <p>Open surfaces get light from many sides.</p>
           <p>In a crevice, the walls block most of that light.</p>
@@ -764,7 +832,7 @@
       </div>
       <aside class="placard">
         <p class="specimen-num">Specimen 02 — Edge wear</p>
-        <h2 class="specimen-title">Paint chips on the edges first</h2>
+        <h2 class="specimen-title wear-type">Paint chips on the edges first</h2>
         <div class="lesson">
           <p>Sharp edges stick out. Hands, tools, and boots hit them first.</p>
           <p>The paint there wears through to the metal below.</p>
@@ -794,7 +862,7 @@
       </div>
       <aside class="placard">
         <p class="specimen-num">Specimen 03 — Tiling</p>
-        <h2 class="specimen-title">A small image repeats</h2>
+        <h2 class="specimen-title wear-type">A small image repeats</h2>
         <div class="lesson">
           <p>One small image covers a big floor by repeating.</p>
           <p>Each copy is the same. Stains and cracks line up in a grid.</p>
@@ -831,7 +899,7 @@
       <aside class="placard">
         <div>
           <p class="specimen-num">Specimen 04 — Centerpiece</p>
-          <h2 class="specimen-title">One slider ages everything</h2>
+          <h2 class="specimen-title wear-type">One slider ages everything</h2>
           <div class="lesson">
             <p>Left: new. Clean paint and sharp shine.</p>
             <p>Right: the same toolbox after use.</p>
@@ -849,8 +917,8 @@
           </div>
           <div class="ctrls" style="margin-top:1rem">
             <label class="ctrl">Age
-              <input id="cmp-age" type="range" min="0" max="1" step="0.01" value="0.8" />
-              <output id="cmp-age-out" for="cmp-age">0.80</output>
+              <input id="cmp-age" type="range" min="0" max="1" step="0.01" value="0.65" />
+              <output id="cmp-age-out" for="cmp-age">0.65</output>
             </label>
           </div>
         </div>
@@ -890,9 +958,17 @@
     </section>
 
     <footer>
-      <div>How Wear Shows · Lesson 04 · Materials · <a href="https://how-surfaces-work-production.up.railway.app/">Lesson 01</a> · <a href="/">Lesson 02</a> · <a href="https://how-surfaces-work-preview-production.up.railway.app/sheen/">Lesson 03</a></div>
+      <div>How Wear Shows · Lesson 04 · Materials · <a href="https://how-surfaces-work-production.up.railway.app/">Lesson 01</a> · <a href="/">Lesson 02</a> · <a href="https://how-surfaces-work-production.up.railway.app/sheen/">Lesson 03</a></div>
       <div><a href="#top">Back to top</a></div>
     </footer>
+  </div>
+
+  <div class="age-dock" role="group" aria-label="Page age">
+    <label class="age-pill">Age
+      <input id="page-age" type="range" min="0" max="1" step="0.01" value="0.65" />
+      <output id="page-age-out" for="page-age">0.65</output>
+    </label>
+    <p class="age-note">The headings age too. Watch where the letters wear first.</p>
   </div>
 
   <script type="module" src="./main.js"></script>

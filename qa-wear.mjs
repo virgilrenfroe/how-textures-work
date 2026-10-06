@@ -10,7 +10,7 @@ const { chromium, webkit } = require('playwright');
 const BASE = process.env.BASE || 'https://how-textures-work-preview-production.up.railway.app/wear/';
 const ROOT = process.env.ROOT || 'https://how-textures-work-preview-production.up.railway.app/';
 const L01 = 'https://how-surfaces-work-production.up.railway.app/';
-const L03 = 'https://how-surfaces-work-preview-production.up.railway.app/sheen/';
+const L03 = 'https://how-surfaces-work-production.up.railway.app/sheen/';
 const OUT = path.resolve(process.env.OUT || '/workspace/lesson04/shots');
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -101,6 +101,161 @@ async function ctrlTest(page, label, id, scene, act, minDiff = 1.5) {
   const d = avgDiff(b?.patch, c?.patch);
   record(`${label}:ctrl-${id}`, d > Math.max(minDiff, noise * 2 + 0.5) && (c?.nonBlank ?? 0) >= 3, `diff=${d.toFixed(2)} noise=${noise.toFixed(2)}`);
   return d;
+}
+
+
+// —— Type wear helpers ——
+const TYPE_OUT = path.join(OUT, 'type');
+fs.mkdirSync(TYPE_OUT, { recursive: true });
+const HEADINGS = ['.hero h1', '#s01 .specimen-title', '#s02 .specimen-title', '#s03 .specimen-title', '#s04 .specimen-title'];
+const BODY = ['.hero-sub', '#s01 .lesson p:first-child', '#s02 .try p', '#s04 .lesson p:nth-child(2)', '#s03 .lesson p:nth-child(2)'];
+
+async function setAge(page, v) {
+  const before = await page.evaluate(() => window.__TYPEWEAR.renders);
+  const expect = await page.evaluate((v) => {
+    const tw = window.__TYPEWEAR;
+    const steps = [0, 0.33, 0.66, 1];
+    const q = tw.mode === 'stepped' ? steps.reduce((a, b) => (Math.abs(b - v) < Math.abs(a - v) ? b : a), 0) : Math.round(v * 50) / 50;
+    const el = document.getElementById('page-age');
+    el.value = String(v);
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    return q;
+  }, v);
+  await page.waitForFunction(({ before, expect }) => {
+    const tw = window.__TYPEWEAR;
+    return tw.renders > before && Math.abs(tw.applied - expect) < 1e-6;
+  }, { before, expect }, { timeout: 30000 });
+  await page.waitForTimeout(250);
+  return expect;
+}
+async function shotEl(page, sel, file) {
+  await page.evaluate((sel) => document.querySelector(sel).scrollIntoView({ block: 'center' }), sel);
+  await page.waitForTimeout(250);
+  return page.locator(sel).first().screenshot(file ? { path: file } : {});
+}
+async function pngDiff(helper, a, b) {
+  return helper.evaluate(async ({ a, b }) => {
+    const load = async (b64) => {
+      const blob = await (await fetch(`data:image/png;base64,${b64}`)).blob();
+      const bmp = await createImageBitmap(blob);
+      const c = document.createElement('canvas');
+      c.width = bmp.width; c.height = bmp.height;
+      const g = c.getContext('2d');
+      g.drawImage(bmp, 0, 0);
+      return g.getImageData(0, 0, c.width, c.height);
+    };
+    const A = await load(a), B = await load(b);
+    if (A.width !== B.width || A.height !== B.height) return { sizeMismatch: true, mean: 999, changed: 1 };
+    let sum = 0, changed = 0;
+    const n = A.width * A.height;
+    for (let i = 0; i < A.data.length; i += 4) {
+      const d = (Math.abs(A.data[i] - B.data[i]) + Math.abs(A.data[i + 1] - B.data[i + 1]) + Math.abs(A.data[i + 2] - B.data[i + 2])) / 3;
+      sum += d; if (d > 24) changed++;
+    }
+    return { mean: sum / n, changed: changed / n };
+  }, { a: a.toString('base64'), b: b.toString('base64') });
+}
+
+async function typeWearChecks(page, context, label, isPhone) {
+  const tw0 = await page.waitForFunction(() => window.__TYPEWEAR?.ready && window.__TYPEWEAR.renders > 0, null, { timeout: 30000 }).then(() => page.evaluate(() => window.__TYPEWEAR)).catch(() => null);
+  record(`${label}:type-ready`, !!tw0 && !tw0.error && tw0.headings === HEADINGS.length, JSON.stringify(tw0 && { mode: tw0.mode, headings: tw0.headings, error: tw0.error }));
+  record(`${label}:type-mode`, tw0?.mode === (isPhone ? 'stepped' : 'live'), `mode=${tw0?.mode}`);
+  const helper = await context.newPage();
+  await helper.goto('about:blank');
+
+  const texts0 = await page.evaluate((sels) => sels.map((s) => document.querySelector(s).innerText), HEADINGS);
+  await setAge(page, 0);
+  const h0 = [], b0 = [];
+  for (const s of HEADINGS) h0.push(await shotEl(page, s));
+  for (const s of BODY) b0.push(await shotEl(page, s));
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: path.join(TYPE_OUT, `${label}-age0.png`) });
+  if (!isPhone) {
+    await shotEl(page, '.hero h1', path.join(TYPE_OUT, `${label}-hero-title-age0.png`));
+    await setAge(page, 0.5);
+    await shotEl(page, '.hero h1', path.join(TYPE_OUT, `${label}-hero-title-age0.5.png`));
+  }
+  await setAge(page, 1);
+  const h1 = [], b1 = [];
+  for (const s of HEADINGS) h1.push(await shotEl(page, s));
+  for (const s of BODY) b1.push(await shotEl(page, s));
+  for (let i = 0; i < HEADINGS.length; i++) {
+    const d = await pngDiff(helper, h0[i], h1[i]);
+    record(`${label}:type-heading-wears ${HEADINGS[i]}`, d.mean > 2 && d.changed > 0.01, `mean=${d.mean.toFixed(2)} changed=${(d.changed * 100).toFixed(1)}%`);
+  }
+  for (let i = 0; i < BODY.length; i++) {
+    record(`${label}:type-body-identical ${BODY[i]}`, Buffer.compare(b0[i], b1[i]) === 0, `${b0[i].length}B vs ${b1[i].length}B`);
+  }
+  if (!isPhone) {
+    await shotEl(page, '.hero h1', path.join(TYPE_OUT, `${label}-hero-title-age1.png`));
+    await shotEl(page, '#s02 .specimen-title', path.join(TYPE_OUT, `${label}-specimen-heading-age1.png`));
+  }
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: path.join(TYPE_OUT, `${label}-age1.png`) });
+
+  const texts1 = await page.evaluate((sels) => sels.map((s) => document.querySelector(s).innerText), HEADINGS);
+  record(`${label}:type-innertext-unchanged`, JSON.stringify(texts0) === JSON.stringify(texts1), texts1.map((t) => t.replace(/\s+/g, ' ')).join(' / '));
+  const sel = await page.evaluate(() => {
+    const h = document.querySelector('.hero h1');
+    const r = document.createRange(); r.selectNodeContents(h);
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    const got = s.toString().replace(/\s+/g, ' ').trim();
+    const ok = getComputedStyle(h).userSelect !== 'none' && getComputedStyle(h).pointerEvents !== 'none';
+    s.removeAllRanges();
+    return { got, ok };
+  });
+  record(`${label}:type-h1-selectable`, sel.got === 'How Wear Shows' && sel.ok, JSON.stringify(sel));
+  const loss = await page.evaluate(() => window.__TYPEWEAR.maxLoss);
+  record(`${label}:type-glyph-loss-cap`, loss <= 0.3, `maxLoss=${(loss * 100).toFixed(1)}%`);
+  const nC = await page.evaluate(() => document.querySelectorAll('canvas').length);
+  record(`${label}:type-one-canvas`, nC === 1, `count=${nC}`);
+
+  // two-way sync between the page Age pill and the Specimen 04 slider
+  const sync = await page.evaluate(() => {
+    const pill = document.getElementById('page-age'), cmp = document.getElementById('cmp-age');
+    pill.value = '0.3'; pill.dispatchEvent(new Event('input', { bubbles: true }));
+    const a = [cmp.value, document.getElementById('cmp-age-out').textContent];
+    cmp.value = '0.9'; cmp.dispatchEvent(new Event('input', { bubbles: true }));
+    const b = [pill.value, document.getElementById('page-age-out').textContent];
+    return { a, b };
+  });
+  record(`${label}:type-age-sync`, sync.a[0] === '0.3' && sync.a[1] === '0.30' && sync.b[0] === '0.9' && sync.b[1] === '0.90', JSON.stringify(sync));
+
+  if (isPhone) {
+    // stepped fallback: input alone does not re-render; release snaps to the nearest step
+    await setAge(page, 0);
+    const r0 = await page.evaluate(() => window.__TYPEWEAR.renders);
+    await page.evaluate(() => { const el = document.getElementById('page-age'); el.value = '0.45'; el.dispatchEvent(new Event('input', { bubbles: true })); });
+    await page.waitForTimeout(700);
+    const mid = await page.evaluate(() => ({ renders: window.__TYPEWEAR.renders, applied: window.__TYPEWEAR.applied }));
+    await page.evaluate(() => { const el = document.getElementById('page-age'); el.dispatchEvent(new Event('change', { bubbles: true })); });
+    await page.waitForFunction(() => Math.abs(window.__TYPEWEAR.applied - 0.33) < 1e-6, null, { timeout: 20000 }).catch(() => null);
+    const end = await page.evaluate(() => window.__TYPEWEAR.applied);
+    record(`${label}:type-stepped-fallback`, mid.renders === r0 && mid.applied === 0 && Math.abs(end - 0.33) < 1e-6, `input→applied=${mid.applied} release→applied=${end}`);
+  }
+  await setAge(page, 0.65);
+  await helper.close();
+}
+
+async function reducedMotionCheck(browserType, label, viewportOpts) {
+  const isWebKit = browserType.name() === 'webkit';
+  const browser = await browserType.launch({ args: isWebKit ? [] : ['--use-gl=angle', '--use-angle=swiftshader', '--enable-webgl', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+  const context = await browser.newContext({ ...viewportOpts, reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(BASE, { waitUntil: 'networkidle', timeout: 90000 });
+  await page.waitForFunction(() => window.__TYPEWEAR?.ready && window.__TYPEWEAR.renders > 0, null, { timeout: 60000 });
+  const r = await page.evaluate(() => {
+    const els = ['.hero h1', '#s01 .specimen-title', '.age-dock', '.age-pill', '#page-age'].map((s) => document.querySelector(s));
+    const dur = els.map((e) => getComputedStyle(e).transitionDuration);
+    const anim = els.map((e) => getComputedStyle(e).animationName);
+    return { mode: window.__TYPEWEAR.mode, dur, anim, applied: window.__TYPEWEAR.applied };
+  });
+  record(`${label}:reduced-motion-type-stepped`, r.mode === 'stepped' && [0, 0.33, 0.66, 1].includes(r.applied), `mode=${r.mode} applied=${r.applied}`);
+  record(`${label}:reduced-motion-no-transitions`, r.dur.every((d) => d.split(',').every((x) => parseFloat(x) === 0)) && r.anim.every((a) => a === 'none'), JSON.stringify(r.dur));
+  await browser.close();
 }
 
 async function runSuite(browserType, label, viewportOpts) {
@@ -302,7 +457,7 @@ async function runSuite(browserType, label, viewportOpts) {
   await ctrlTest(page, label, 'cmp-age-up', 'cmp-used', () => setRange(page, '#cmp-age', 1));
   await ensureSceneVisible(page, 'cmp-used');
   await page.screenshot({ path: path.join(OUT, `${label}-s04-age1.png`) });
-  await setRange(page, '#cmp-age', 0.8);
+  await setRange(page, '#cmp-age', 0.65);
   {
     await ensureSceneVisible(page, 'cmp-new');
     const a = await sampleView(page, '[data-scene="cmp-new"]');
@@ -315,6 +470,8 @@ async function runSuite(browserType, label, viewportOpts) {
     const spin = avgDiff(b?.patch, c?.patch);
     record(`${label}:ctrl-turntable`, spin > Math.max(1.0, still * 2 + 0.3), `off=${still.toFixed(2)} on=${spin.toFixed(2)}`);
   }
+
+  await typeWearChecks(page, context, label, vw < 700);
 
   // —— Screenshots ——
   await page.evaluate(() => window.scrollTo(0, 0));
@@ -355,6 +512,7 @@ const only = process.env.ONLY || 'desk,phone,webkit,links';
 if (only.includes('desk')) await runSuite(chromium, 'chromium-desk', { viewport: { width: 1440, height: 900 } });
 if (only.includes('phone')) await runSuite(chromium, 'chromium-phone', { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, hasTouch: true, isMobile: true });
 if (only.includes('webkit')) await runSuite(webkit, 'webkit-phone', { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, hasTouch: true, isMobile: true });
+if (only.includes('desk')) await reducedMotionCheck(chromium, 'chromium-desk-rm', { viewport: { width: 1440, height: 900 } });
 if (only.includes('links')) await checkSeriesLinks();
 
 const pass = results.filter((r) => r.pass).length;

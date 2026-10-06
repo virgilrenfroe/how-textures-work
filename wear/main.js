@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { initTypeWear } from './type-wear.js';
 
 const errEl = document.getElementById('err');
 function showErr(msg) {
@@ -834,6 +835,7 @@ bindToggle('[data-tile="break"]', (on) => { tileU.uBreak.value = on ? 1 : 0; });
 
 bindRange('cmp-age', (v) => { applyAge(cmp[1].userData.meshes.mat, v); });
 bindToggle('[data-cmp="spin"]', (on) => { shared.cmpSpin = on; });
+try { initTypeWear(); } catch (err) { console.warn(err); }
 
 // —— Render loop ——
 let visible = !document.hidden;
