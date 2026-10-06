@@ -130,7 +130,8 @@ async function setAge(page, v) {
   return expect;
 }
 async function shotEl(page, sel, file) {
-  await page.evaluate((sel) => document.querySelector(sel).scrollIntoView({ block: 'center' }), sel);
+  await page.evaluate((sel) => document.querySelector(sel).scrollIntoView({ block: 'center', behavior: 'instant' }), sel);
+  await page.waitForFunction(() => new Promise((r) => { const y = scrollY; requestAnimationFrame(() => requestAnimationFrame(() => r(scrollY === y))); }));
   await page.waitForTimeout(250);
   return page.locator(sel).first().screenshot(file ? { path: file } : {});
 }
@@ -186,7 +187,9 @@ async function typeWearChecks(page, context, label, isPhone) {
     record(`${label}:type-heading-wears ${HEADINGS[i]}`, d.mean > 2 && d.changed > 0.01, `mean=${d.mean.toFixed(2)} changed=${(d.changed * 100).toFixed(1)}%`);
   }
   for (let i = 0; i < BODY.length; i++) {
-    record(`${label}:type-body-identical ${BODY[i]}`, Buffer.compare(b0[i], b1[i]) === 0, `${b0[i].length}B vs ${b1[i].length}B`);
+    const same = Buffer.compare(b0[i], b1[i]) === 0;
+    const d = same ? { mean: 0, changed: 0 } : await pngDiff(helper, b0[i], b1[i]);
+    record(`${label}:type-body-identical ${BODY[i]}`, d.mean === 0 && d.changed === 0, `changedPx=${(d.changed * 100).toFixed(3)}%`);
   }
   if (!isPhone) {
     await shotEl(page, '.hero h1', path.join(TYPE_OUT, `${label}-hero-title-age1.png`));
