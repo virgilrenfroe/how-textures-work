@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>How Stickers Sit on Top · Lesson 13 · Materials</title>
+  <meta name="description" content="Lesson 13 · Materials. See how a decal — a logo, stain, or number — sits on top of a base material without re-unwrapping the whole model." />
+  <meta property="og:title" content="How Stickers Sit on Top · Lesson 13 · Materials" />
+  <meta property="og:description" content="Lesson 13 · Materials. Decals: stickers, dirt, and labels on top of a base material." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="How Stickers Sit on Top · Lesson 13 · Materials" />
+  <meta name="twitter:description" content="Lesson 13 · Materials. Decals: stickers, dirt, and labels on top of a base material." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #050505;
+      --paper: #f4efe6;
+      --cream: #e8dfd0;
+      --mute: rgba(244, 239, 230, 0.58);
+      --dim: rgba(244, 239, 230, 0.28);
+      --accent: #ff4fd8;
+      --accent2: #7ee0c8;
+      --steel: #e0c8d8;
+      --line: rgba(244, 239, 230, 0.14);
+      --card: #101010;
+      --placard: #0e0e0e;
+      --mono: "JetBrains Mono", ui-monospace, monospace;
+      --display: "Space Grotesk", sans-serif;
+      --body: "Gabarito", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+    body {
+      margin: 0;
+      background: var(--ink);
+      color: var(--paper);
+      font-family: var(--body);
+      font-size: 16px;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+    /* One shared full-page canvas (multiple view regions) */
+    #c {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .content {
+      overflow-x: clip;
+      position: relative;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .content a, .content button, .content input, .content label,
+    .content .view, .content .chip, .content .ctrl {
+      pointer-events: auto;
+    }
+
+    /* —— Hero —— */
+    .hero {
+      min-height: 92vh;
+      padding: clamp(1.25rem, 4vw, 3rem);
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: clamp(1rem, 3vw, 2.5rem);
+      align-items: end;
+      position: relative;
+    }
+    .hero-kicker {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      margin-bottom: 1rem;
+    }
+    .hero h1 {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: clamp(3.4rem, 11.5vw, 7.6rem);
+      line-height: 0.9;
+      letter-spacing: -0.045em;
+      margin: 0 0 1.25rem;
+      max-width: 11ch;
+    }
+    .hero h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+    .hero-sub {
+      font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+      max-width: 34ch;
+      color: var(--mute);
+      margin: 0 0 1.75rem;
+      font-weight: 500;
+    }
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem 1.2rem;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .hero-meta span { color: var(--paper); }
+    .hero-aside {
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1.5rem;
+      padding-top: 0.5rem;
+    }
+    .hero-diagram {
+      border: 1px solid var(--line);
+      background: linear-gradient(160deg, #1c1712 0%, #0e0c0a 100%);
+      padding: 1.1rem 1.2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-diagram::before {
+      content: "";
+      position: absolute;
+      top: -40%;
+      right: -20%;
+      width: 70%;
+      height: 90%;
+      background: radial-gradient(circle, rgba(255,79,216,0.2), transparent 65%);
+      pointer-events: none;
+    }
+    .hero-diagram h2 {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin: 0 0 0.85rem;
+      color: var(--accent);
+      position: relative;
+    }
+    .diagram-rows {
+      display: grid;
+      gap: 0.55rem;
+      position: relative;
+      font-size: 13px;
+      color: var(--cream);
+    }
+    .diagram-rows div {
+      display: grid;
+      grid-template-columns: 7.5rem 1fr;
+      gap: 0.6rem;
+      align-items: baseline;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 0.45rem;
+    }
+    .diagram-rows b {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--steel);
+      font-weight: 400;
+    }
+    .scroll-cue {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .scroll-cue a { color: var(--paper); text-decoration: none; border-bottom: 1px solid var(--accent); }
+
+    /* —— Specimens —— */
+    .specimen {
+      scroll-margin-top: 8px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.85fr);
+      gap: 0;
+      min-height: 78vh;
+      border-top: 1px solid var(--line);
+      position: relative;
+    }
+    .specimen.centerpiece {
+      grid-template-columns: 1fr;
+      min-height: 92vh;
+    }
+    .view-wrap {
+      position: relative;
+      min-height: 52vh;
+      background: transparent;
+    }
+    .view {
+      width: 100%;
+      height: 100%;
+      min-height: 52vh;
+      position: relative;
+      touch-action: none;
+    }
+    .centerpiece .views {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 58vh;
+      border-bottom: 1px solid var(--line);
+    }
+    .centerpiece .view-pane {
+      position: relative;
+      border-right: 1px solid var(--line);
+      min-height: 58vh;
+    }
+    .centerpiece .view-pane:last-child { border-right: none; }
+    .view-label {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 3;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding: 6px 10px;
+      background: rgba(12,10,8,0.72);
+      border: 1px solid var(--line);
+      color: var(--accent2);
+      pointer-events: none;
+    }
+    .placard {
+      background: var(--placard);
+      border-left: 1px solid var(--line);
+      padding: clamp(1.25rem, 3vw, 2rem);
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      justify-content: center;
+    }
+    .centerpiece .placard {
+      border-left: none;
+      border-top: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 1.5rem 2rem;
+      align-items: start;
+    }
+    .specimen-num {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin: 0;
+    }
+    .specimen-title {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: clamp(1.7rem, 3.6vw, 2.55rem);
+      letter-spacing: -0.035em;
+      line-height: 1.05;
+      margin: 0;
+    }
+    .lesson {
+      font-size: 14.5px;
+      color: var(--cream);
+      margin: 0;
+    }
+    .lesson p {
+      margin: 0 0 0.55rem;
+    }
+    .lesson p:last-child { margin-bottom: 0; }
+    .try {
+      border: 1px dashed rgba(200, 245, 66, 0.45);
+      background: rgba(200, 245, 66, 0.06);
+      padding: 0.85rem 1rem;
+    }
+    .try strong {
+      display: block;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      margin-bottom: 0.35rem;
+      font-weight: 700;
+    }
+    .try p { margin: 0; font-size: 14px; color: var(--paper); }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+    .chip {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.45rem 0.7rem;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--paper);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .chip:hover, .chip[aria-pressed="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0c0a08;
+    }
+    .ctrls {
+      display: grid;
+      gap: 0.65rem;
+    }
+    .ctrl {
+      display: grid;
+      grid-template-columns: 6.5rem 1fr 2.6rem;
+      gap: 0.55rem;
+      align-items: center;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--mute);
+    }
+    .ctrl input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      height: 1.4rem;
+    }
+    .ctrl output { text-align: right; color: var(--paper); }
+
+    /* —— Teachers —— */
+    .teachers {
+      border-top: 1px solid var(--line);
+      padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 4vw, 3rem);
+      background: #100e0b;
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: clamp(1.5rem, 4vw, 3rem);
+    }
+    .teachers h2 {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: clamp(2.1rem, 5.2vw, 3.5rem);
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin: 0 0 0.75rem;
+    }
+    .teachers .lede {
+      color: var(--mute);
+      max-width: 36ch;
+      margin: 0;
+    }
+    .teach-grid {
+      display: grid;
+      gap: 1rem;
+    }
+    .teach-card {
+      border: 1px solid var(--line);
+      padding: 1.1rem 1.2rem;
+      background: var(--card);
+    }
+    .teach-card h3 {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--steel);
+      margin: 0 0 0.6rem;
+      font-weight: 700;
+    }
+    .teach-card ul {
+      margin: 0;
+      padding-left: 1.1rem;
+      color: var(--cream);
+      font-size: 14.5px;
+    }
+    .teach-card li { margin-bottom: 0.35rem; }
+    .teach-card p { margin: 0; font-size: 14.5px; color: var(--cream); }
+    .map-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    .map-cols .teach-card { margin: 0; }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 1.25rem clamp(1.25rem, 4vw, 3rem) 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.5rem;
+      justify-content: space-between;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    footer a { color: var(--paper); text-decoration: none; border-bottom: 1px solid var(--accent); }
+
+    .err {
+      position: fixed;
+      left: 12px; right: 12px; bottom: 12px;
+      z-index: 20;
+      background: #3a1212;
+      color: #ffd6d6;
+      padding: 12px 14px;
+      border-radius: 8px;
+      display: none;
+      white-space: pre-wrap;
+      font-family: var(--mono);
+      font-size: 12px;
+      pointer-events: none;
+    }
+
+    @media (max-width: 860px) {
+      .hero {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+      }
+      .hero h1 { max-width: none; }
+      .specimen, .centerpiece .placard, .teachers, .map-cols {
+        grid-template-columns: 1fr;
+      }
+      .placard { border-left: none; border-top: 1px solid var(--line); }
+      .centerpiece .views { grid-template-columns: 1fr; }
+      .centerpiece .view-pane { border-right: none; border-bottom: 1px solid var(--line); min-height: 42vh; }
+      .view, .view-wrap { min-height: 42vh; }
+      .specimen { min-height: auto; }
+    }
+  
+    .series-nav {
+      position: absolute;
+      top: clamp(1rem, 3vw, 1.75rem);
+      right: clamp(1rem, 3vw, 2rem);
+      z-index: 5;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .series-nav a {
+      color: var(--paper);
+      text-decoration: none;
+      border-bottom: 1px solid var(--accent);
+      pointer-events: auto;
+    }
+    .flat-uv {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      width: min(42%, 220px);
+      aspect-ratio: 1;
+      border: 1px solid var(--line);
+      background: #0a0908;
+      z-index: 3;
+      pointer-events: none;
+      display: none;
+    }
+    .flat-uv.show { display: block; }
+    .flat-uv canvas { width: 100%; height: 100%; display: block; }
+    .flat-uv label {
+      position: absolute;
+      top: 6px; left: 6px;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      background: rgba(12,10,8,0.75);
+      padding: 3px 6px;
+      border: 1px solid var(--line);
+    }
+
+
+    /* Series craft — Ruben-energy principles (not a copy) */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 50;
+      opacity: 0.045;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      mix-blend-mode: overlay;
+    }
+    .hero-kicker::before {
+      content: "";
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      margin-right: 0.55rem;
+      border-radius: 50%;
+      background: var(--accent2);
+      box-shadow: 0 0 10px var(--accent2);
+      vertical-align: 1px;
+    }
+    .chip {
+      border-radius: 999px !important;
+      padding: 0.5rem 0.95rem !important;
+      letter-spacing: 0.08em !important;
+      transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    }
+    .chip:hover {
+      transform: translateY(-1px);
+      border-color: var(--accent);
+    }
+    .chip:active { transform: translateY(0); }
+    .try {
+      border-radius: 14px;
+    }
+    .hero-diagram {
+      border-radius: 16px;
+    }
+    .teach-card {
+      border-radius: 14px;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .teach-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .series-nav a {
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      border-bottom: 1px solid var(--accent);
+      padding: 0.45rem 0.85rem;
+      transition: background 0.18s ease, color 0.18s ease;
+    }
+    .series-nav a:hover {
+      background: var(--accent);
+      color: #0a0a0a;
+      border-color: var(--accent);
+    }
+    .view-label {
+      border-radius: 999px;
+    }
+    .ctrl input[type="range"] {
+      height: 1.25rem;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .chip, .teach-card, .series-nav a { transition: none !important; }
+    }
+
+
+    .ticker {
+      position: relative;
+      z-index: 6;
+      overflow: hidden;
+      border-bottom: 1px solid var(--line);
+      background: #000;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      pointer-events: none;
+    }
+    .ticker-track {
+      display: flex;
+      width: max-content;
+      gap: 0;
+      animation: ticker-scroll 42s linear infinite;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      white-space: nowrap;
+    }
+    .ticker-track span { padding: 0 1.25rem; }
+    .ticker-track span::before {
+      content: "✦";
+      margin-right: 1.25rem;
+      color: var(--accent);
+      opacity: 0.7;
+    }
+    @keyframes ticker-scroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ticker-track { animation: none; }
+    }
+    .hero {
+      padding-top: clamp(1rem, 3vw, 2rem);
+      align-items: stretch !important;
+      grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.25fr) !important;
+      grid-template-rows: auto auto;
+      min-height: 0 !important;
+      overflow: visible;
+    }
+    .hero-copy {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding-bottom: 1rem;
+    }
+    .hero-copy .scroll-cue { margin-top: 1.75rem; }
+    .hero-stage {
+      position: relative;
+      min-height: min(76vh, 780px);
+      margin-right: clamp(-5rem, -6vw, -1.25rem);
+    }
+    .hero-stage .view[data-scene="hero"] {
+      position: absolute;
+      inset: 0;
+      width: auto;
+      height: auto;
+      touch-action: pan-y;
+      cursor: crosshair;
+    }
+    /* Glossary: a normal block in the flow, never over the hero */
+    .hero-gloss {
+      grid-column: 1 / -1;
+      position: relative;
+    }
+    .hero-gloss .diagram-rows {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      column-gap: 1.5rem;
+    }
+    .series-nav {
+      position: relative !important;
+      top: auto !important;
+      right: auto !important;
+      display: flex;
+      justify-content: flex-end;
+      padding: 0.9rem clamp(1.25rem, 4vw, 3rem) 0;
+    }
+    @media (max-width: 860px) {
+      .hero { grid-template-columns: 1fr !important; padding-top: 0.75rem; }
+      .hero-stage {
+        order: -1;
+        min-height: 46vh;
+        margin: 0 -1.25rem 0.5rem;
+      }
+      .hero-copy { padding-bottom: 0; }
+      .hero-gloss .diagram-rows { grid-template-columns: 1fr; }
+      .series-nav { padding-top: 0.75rem; }
+    }
+
+  
+    /* —— Lesson 06 craft: cut, sanded, polished —— */
+    .specimen-num {
+      display: inline-block;
+      border: 1.5px solid var(--accent);
+      color: var(--accent) !important;
+      padding: 0.2rem 0.55rem 0.15rem;
+      border-radius: 4px;
+      transform: rotate(-1.2deg);
+      box-shadow: 1px 1px 0 rgba(240, 138, 168, 0.25);
+    }
+    .try {
+      border: 1px solid var(--line);
+      border-top: 2px dashed rgba(240, 138, 168, 0.55);
+      background:
+        radial-gradient(rgba(244, 239, 230, 0.045) 1px, transparent 1.2px) 0 0 / 7px 7px,
+        #0f0d0a;
+    }
+    .teach-card {
+      background:
+        radial-gradient(rgba(244, 239, 230, 0.04) 1px, transparent 1.2px) 0 0 / 6px 6px,
+        var(--card);
+    }
+    .hero h1 em {
+      text-shadow: 2px 2px 0 rgba(215, 162, 108, 0.35);
+    }
+    .real-world {
+      border-top: 1px solid var(--line);
+      padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 4vw, 3rem);
+      scroll-margin-top: 1rem;
+    }
+    .rw-head { max-width: 62ch; margin-bottom: clamp(1.1rem, 3vw, 1.75rem); }
+    .rw-title {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: clamp(2.1rem, 5.2vw, 3.5rem);
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin: 0 0 0.75rem;
+    }
+    .rw-head .lede { color: var(--mute); margin: 0; max-width: 52ch; }
+    .rw-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.85rem;
+    }
+    @media (max-width: 1080px) { .rw-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 640px) { .rw-list { grid-template-columns: minmax(0, 1fr); } }
+    .rw-item {
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--accent);
+      border-radius: 14px;
+      padding: 1rem 1.1rem 1.1rem;
+      background: var(--card);
+      min-width: 0;
+    }
+    .rw-setting {
+      display: block;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--steel);
+      margin-bottom: 0.4rem;
+    }
+    .rw-job {
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 1.12rem;
+      letter-spacing: -0.01em;
+      margin: 0 0 0.45rem;
+      color: var(--cream);
+    }
+    .rw-item p { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--cream); }
+    .hero h1 {
+      font-size: clamp(2.9rem, 7.6vw, 6rem) !important;
+      max-width: 12ch !important;
+      line-height: 0.92 !important;
+    }
+    .view[data-scene="noise"] { touch-action: pan-y; cursor: default; }
+    .view[data-scene="wood"] { touch-action: pan-y; cursor: default; }
+    .view-label.solid { color: var(--accent2); }
+    .view-label.painted { color: var(--accent); }
+    /* Phone held sideways: the screen is short, so give each specimen most of the height */
+    @media (orientation: landscape) and (max-height: 500px) {
+      .content .view:not([data-scene="hero"]), .content .view-wrap { min-height: 84vh; }
+      .centerpiece .views { grid-template-columns: 1fr 1fr; min-height: 84vh; }
+      .centerpiece .view-pane { min-height: 84vh; border-bottom: none; border-right: 1px solid var(--line); }
+      .centerpiece .view-pane:last-child { border-right: none; }
+    }
+    .uv-key {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem 1rem;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--mute);
+      margin: 0;
+    }
+    .uv-key b { color: var(--paper); font-weight: 500; }
+    /* Big touch targets for sliders on touch screens and narrow windows */
+    @media (pointer: coarse), (max-width: 700px) {
+      .ctrl { grid-template-columns: 5.6rem 1fr 2.8rem; }
+      .ctrl input[type="range"] { height: 44px !important; min-height: 44px; margin: 0; }
+      .chip { min-height: 44px; }
+    }
+
+    .uv-net {
+      position: absolute;
+      right: 0.75rem;
+      bottom: 0.75rem;
+      width: min(42%, 220px);
+      aspect-ratio: 1.4;
+      background: rgba(8,10,18,0.88);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0.45rem 0.55rem 0.35rem;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      z-index: 3;
+    }
+    .uv-net.on { opacity: 1; }
+    .uv-net svg { width: 100%; height: 100%; display: block; }
+    .uv-net .uv-net-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin: 0 0 0.25rem;
+    }
+    .view-wrap { position: relative; }
+    .texel-readout {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      color: var(--accent2);
+      margin: 0.4rem 0 0;
+    }
+    .texel-readout b { color: var(--paper); font-weight: 500; }
+
+    @media (orientation: landscape) and (max-height: 500px) {
+      .hero { min-height: 100vh; grid-template-columns: 1fr 1fr; align-items: center; }
+      .hero-stage { min-height: 78vh; }
+      .hero-stage .view[data-scene="hero"] { min-height: 78vh; }
+      .hero-diagram { display: none; } /* free vertical space for the form */
+    }
+
+    .mip-pyramid {
+      position: absolute;
+      right: 0.75rem;
+      bottom: 0.75rem;
+      width: min(46%, 240px);
+      background: rgba(10,8,4,0.9);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0.5rem 0.55rem 0.45rem;
+      pointer-events: none;
+      z-index: 3;
+    }
+    .mip-pyramid .mip-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin: 0 0 0.35rem;
+    }
+    .mip-pyramid svg { width: 100%; height: auto; display: block; }
+    .mip-pyramid .mip-step { fill: rgba(255,79,216,0.12); stroke: rgba(255,79,216,0.35); }
+    .mip-pyramid .mip-step.active { fill: rgba(255,79,216,0.55); stroke: #ff4fd8; stroke-width: 2; }
+    .view-wrap { position: relative; }
+
+    .decal-hint {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      color: var(--mute);
+      margin: 0.35rem 0 0;
+    }
+    .decal-hint b { color: var(--accent2); font-weight: 500; }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+
+
+
+<body>
+  <canvas id="c"></canvas>
+  <div class="err" id="err"></div>
+
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track">
+      <span>DECAL</span><span>STICKER</span><span>LOGO</span><span>LAYER</span><span>OPACITY</span><span>BLEND</span><span>PROJECT</span><span>DAMAGE</span><span>POSTER</span><span>LABEL</span><span>STACK</span><span>BASE MATERIAL</span>
+      <span>DECAL</span><span>STICKER</span><span>LOGO</span><span>LAYER</span><span>OPACITY</span><span>BLEND</span><span>PROJECT</span><span>DAMAGE</span><span>POSTER</span><span>LABEL</span><span>STACK</span><span>BASE MATERIAL</span>
+    </div>
+  </div>
+  <div class="content">
+    <nav class="series-nav" style="gap:0.45rem;flex-wrap:wrap">
+      <a href="https://how-surfaces-work-production.up.railway.app/">Lesson 01 · Surfaces</a>
+      <a href="https://how-textures-work-production.up.railway.app/">Lesson 02 · Textures</a>
+      <a href="https://how-surfaces-work-production.up.railway.app/sheen/">Lesson 03 · Soft</a>
+      <a href="https://how-textures-work-preview-production.up.railway.app/wear/">Lesson 04 · Wear</a>
+      <a href="https://how-surfaces-work-l05-preview-production.up.railway.app/fresnel/">Lesson 05 · Edges</a>
+      <a href="https://how-textures-work-l06-preview-production.up.railway.app/grain/">Lesson 06 · Grain</a>
+      <a href="https://how-surfaces-work-l07-preview-production.up.railway.app/refract/">Lesson 07 · Refract</a>
+      <a href="https://how-textures-work-l08-preview-production.up.railway.app/uv/">Lesson 08 · UV</a>
+      <a href="https://how-surfaces-work-l09-preview-production.up.railway.app/scatter/">Lesson 09 · Scatter</a>
+      <a href="https://how-textures-work-l10-preview-production.up.railway.app/mips/">Lesson 10 · Mips</a>
+      <a href="https://how-surfaces-work-l11-preview-production.up.railway.app/aniso/">Lesson 11 · Aniso</a>
+    </nav>
+    <header class="hero" id="top">
+      <div class="hero-copy">
+        <p class="hero-kicker">Lesson 13 · Materials</p>
+        <h1>How <em>Stickers</em> Sit on Top</h1>
+        <p class="hero-sub">A base material covers the whole object. A decal is a smaller image — a logo, stain, crack, or number — that sits on top in one place, without re-cutting the unwrap.</p>
+        <div class="hero-meta">
+          <div>Time <span>20 min</span></div>
+          <div>You will learn <span>decals, opacity, and projection</span></div>
+          <div>Try first <span>drag across the crate to see the real sticker under the dots</span></div>
+          <div>Core lesson <span>One base, many stickers</span></div>
+        </div>
+        <p class="scroll-cue"><a href="#s01">Enter the lab ↓</a></p>
+      </div>
+      <div class="hero-stage">
+        <div class="view" data-scene="hero" tabindex="0" aria-label="A crate with a sticker under a magenta dot mask. Drag across it to reveal the real surfaces."></div>
+      </div>
+      <div class="hero-diagram hero-gloss" aria-label="Lesson map">
+        <h2>What you will see</h2>
+        <div class="diagram-rows">
+          <div><b>Base material</b><span>The map or look that covers the whole object.</span></div>
+          <div><b>Decal</b><span>A smaller image that sits on top in one place, like a sticker.</span></div>
+          <div><b>Projection</b><span>Pressing the sticker onto the surface from a direction.</span></div>
+          <div><b>Opacity</b><span>How strongly the sticker covers what is underneath.</span></div>
+          <div><b>Blend</b><span>Whether the sticker replaces the base or mixes with it.</span></div>
+          <div><b>Stack</b><span>Two or more stickers in order, such as a scratch over a logo.</span></div>
+        </div>
+      </div>
+    </header>
+
+    <section class="specimen" id="s01">
+      <div class="view-wrap">
+        <div class="view" data-scene="place" tabindex="0" aria-label="A metal crate with a logo sticker. Move offset, scale, and rotation to place the sticker."></div>
+      </div>
+      <aside class="placard">
+        <p class="specimen-num">Specimen 01 — Place the sticker</p>
+        <h2 class="specimen-title">Move it without a new unwrap</h2>
+        <div class="lesson">
+          <p>The crate uses one base material for wood and metal. The logo is a separate image pressed onto the front face.</p>
+          <p>You do not re-cut the UV map of the whole crate. You only place the sticker: slide it, scale it, and turn it.</p>
+          <p>Games and film use this so one crate material can become many unique props with different numbers and marks.</p>
+        </div>
+        <div class="try">
+          <strong>Try this</strong>
+          <p>Move Offset X and Offset Y until the logo sits in a corner. Raise Scale, then turn Rotation. The base wood stays the same while only the sticker moves.</p>
+        </div>
+        <div class="ctrls">
+          <label class="ctrl">Offset X
+            <input id="place-x" type="range" min="-0.45" max="0.45" step="0.01" value="0" />
+            <output id="place-x-out" for="place-x">0.00</output>
+          </label>
+          <label class="ctrl">Offset Y
+            <input id="place-y" type="range" min="-0.35" max="0.35" step="0.01" value="0.05" />
+            <output id="place-y-out" for="place-y">0.05</output>
+          </label>
+          <label class="ctrl">Scale
+            <input id="place-scale" type="range" min="0.35" max="1.4" step="0.01" value="0.75" />
+            <output id="place-scale-out" for="place-scale">0.75</output>
+          </label>
+          <label class="ctrl">Rotation
+            <input id="place-rot" type="range" min="-45" max="45" step="1" value="0" />
+            <output id="place-rot-out" for="place-rot">0</output>
+          </label>
+        </div>
+      </aside>
+    </section>
+
+    <section class="specimen" id="s02">
+      <div class="view-wrap">
+        <div class="view" data-scene="blend" tabindex="0" aria-label="A crate with a dirt stain sticker. Change opacity and switch between cover and multiply blend."></div>
+      </div>
+      <aside class="placard">
+        <p class="specimen-num">Specimen 02 — Opacity and blend</p>
+        <h2 class="specimen-title">Cover, or let the base show through</h2>
+        <div class="lesson">
+          <p>A solid logo often covers the base completely. Dirt and soft stains usually mix with what is underneath so metal and wood still read.</p>
+          <p>Opacity sets how strong the sticker is. At zero you see only the base. At one the sticker is at full strength.</p>
+          <p>Cover mode replaces the base where the sticker is opaque. Multiply mode darkens the base, like a translucent stain.</p>
+        </div>
+        <div class="try">
+          <strong>Try this</strong>
+          <p>Set Opacity low, then raise it. Press Cover, then Multiply. Watch whether the metal under the stain disappears or stays visible.</p>
+        </div>
+        <div class="chips" role="group" aria-label="Blend mode">
+          <button type="button" class="chip" data-blend="cover" aria-pressed="true">Cover</button>
+          <button type="button" class="chip" data-blend="multiply" aria-pressed="false">Multiply</button>
+        </div>
+        <div class="ctrls" style="margin-top:1rem">
+          <label class="ctrl">Opacity
+            <input id="blend-op" type="range" min="0" max="1" step="0.01" value="0.75" />
+            <output id="blend-op-out" for="blend-op">0.75</output>
+          </label>
+        </div>
+      </aside>
+    </section>
+
+    <section class="specimen" id="s03">
+      <div class="view-wrap">
+        <div class="view" data-scene="project" tabindex="0" aria-label="A box with a projected sticker. Change the projection angle to see foreshortening on the side face."></div>
+      </div>
+      <aside class="placard">
+        <p class="specimen-num">Specimen 03 — Projection angle</p>
+        <h2 class="specimen-title">A steep aim stretches the sticker</h2>
+        <div class="lesson">
+          <p>A projected decal is like holding a sticker to the surface from one direction. When the aim is square to the face, the logo looks true.</p>
+          <p>When the aim is steep, the same sticker stretches across the side — foreshortening. Artists aim projectors carefully so labels stay readable.</p>
+          <p>The thin magenta arrow shows the projection direction.</p>
+        </div>
+        <div class="try">
+          <strong>Try this</strong>
+          <p>Set Angle near 0 and read the number. Raise Angle toward 70 and watch the sticker stretch down the side of the box.</p>
+        </div>
+        <div class="ctrls">
+          <label class="ctrl">Angle
+            <input id="proj-angle" type="range" min="0" max="70" step="1" value="15" />
+            <output id="proj-angle-out" for="proj-angle">15</output>
+          </label>
+        </div>
+        <p class="decal-hint">Aim · <b id="proj-hint">square to the face</b></p>
+      </aside>
+    </section>
+
+    <section class="specimen" id="s04">
+      <div class="view-wrap">
+        <div class="view" data-scene="stack" tabindex="0" aria-label="A crate with a logo sticker and a scratch sticker on top. Toggle which layers are visible."></div>
+      </div>
+      <aside class="placard">
+        <p class="specimen-num">Specimen 04 — Stack</p>
+        <h2 class="specimen-title">Scratch over logo</h2>
+        <div class="lesson">
+          <p>Decals can stack. The order matters: a scratch drawn after a logo sits on top of the logo and cuts through it.</p>
+          <p>In plain terms, the last sticker painted wins where they overlap. That is draw order.</p>
+          <p>One base crate plus a logo layer and a damage layer can sell a unique prop without a new unwrap.</p>
+        </div>
+        <div class="try">
+          <strong>Try this</strong>
+          <p>Turn Logo off, then on. Turn Scratch off, then on. With both on, look where the scratch crosses the logo — the scratch sits on top.</p>
+        </div>
+        <div class="chips" role="group" aria-label="Stack layers">
+          <button type="button" class="chip" data-stack="logo" aria-pressed="true">Logo</button>
+          <button type="button" class="chip" data-stack="scratch" aria-pressed="true">Scratch</button>
+        </div>
+        <p class="decal-hint" style="margin-top:0.85rem">Draw order · <b>base → logo → scratch</b></p>
+      </aside>
+    </section>
+
+    <section class="real-world" id="real-world" aria-labelledby="rw-title">
+      <div class="rw-head">
+        <h2 class="rw-title" id="rw-title">Where you see this</h2>
+        <p class="lede">People who dress levels and props use decals so one base material can carry many stickers, stains, and marks.</p>
+      </div>
+      <ul class="rw-list">
+        <li class="rw-item">
+          <span class="rw-setting">Game levels</span>
+          <h3 class="rw-job">Environment artist</h3>
+          <p>An environment artist stamps damage, posters, and graffiti into game levels. One wall or crate material becomes many unique surfaces without painting a new unwrap for every mark.</p>
+        </li>
+        <li class="rw-item">
+          <span class="rw-setting">Runtime damage systems</span>
+          <h3 class="rw-job">Technical artist</h3>
+          <p>A technical artist builds decal systems that spawn bullet holes, scuffs, and burns while the game runs. The system projects a small image onto the hit surface so damage appears where the shot landed.</p>
+        </li>
+        <li class="rw-item">
+          <span class="rw-setting">Film props</span>
+          <h3 class="rw-job">Look-dev artist</h3>
+          <p>A look-dev artist adds label and dirt layers on film props so a clean hero asset can read as used, shipped, or battle-worn in close-ups without rebuilding the base material.</p>
+        </li>
+        <li class="rw-item">
+          <span class="rw-setting">Packaging and product</span>
+          <h3 class="rw-job">Product visualization artist</h3>
+          <p>A product visualization artist places logos and regulatory marks on packaging so type stays sharp and correctly aimed on bottles, boxes, and cans in catalog shots.</p>
+        </li>
+        <li class="rw-item">
+          <span class="rw-setting">Automotive CGI</span>
+          <h3 class="rw-job">Automotive CGI artist</h3>
+          <p>An automotive CGI artist lays racing numbers, sponsor badges, and team marks onto car bodies. Decals keep the paint material shared while each car wears a unique set of stickers.</p>
+        </li>
+      </ul>
+    </section>
+
+    <section class="teachers" id="teachers">
+      <div>
+        <h2>For teachers</h2>
+        <p class="lede">Short objectives, one classroom loop, and how the lab maps to studio layering practice.</p>
+      </div>
+      <div class="teach-grid">
+        <div class="teach-card">
+          <h3>Learning objectives</h3>
+          <ul>
+            <li>Explain why a decal can mark one place without re-unwrapping the whole model.</li>
+            <li>Place a sticker with offset, scale, and rotation controls.</li>
+            <li>Contrast cover opacity with a multiply (stain) blend in plain language.</li>
+            <li>Describe how a steep projection stretches a sticker on a side face.</li>
+            <li>State that stacked stickers follow draw order (last on top).</li>
+          </ul>
+        </div>
+        <div class="teach-card">
+          <h3>10-minute classroom activity</h3>
+          <p>1) Give pairs a cardboard box and sticky notes as “decals.” 2) Students place a number, then a torn strip over it — note which sits on top. 3) On Specimen 03, raise Angle and sketch the stretched logo. 4) Write one sentence on when they would use a multiply stain instead of a solid logo.</p>
+        </div>
+        <div class="map-cols">
+          <div class="teach-card">
+            <h3>Art &amp; design map</h3>
+            <p>Level dressing with posters and damage, runtime hit decals, film prop weathering layers, packaging logos, racing numbers and badges.</p>
+          </div>
+          <div class="teach-card">
+            <h3>Science map</h3>
+            <p>Projection onto surfaces, foreshortening, opacity as coverage, multiply as filtering light through a stain, and ordered layer compositing.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div>How Stickers Sit on Top · Lesson 13 · Materials · <a href="https://how-surfaces-work-production.up.railway.app/">Lesson 01</a> · <a href="https://how-textures-work-production.up.railway.app/">Lesson 02</a> · <a href="https://how-surfaces-work-production.up.railway.app/sheen/">Lesson 03</a> · <a href="https://how-textures-work-preview-production.up.railway.app/wear/">Lesson 04</a> · <a href="https://how-surfaces-work-l05-preview-production.up.railway.app/fresnel/">Lesson 05</a> · <a href="https://how-textures-work-l06-preview-production.up.railway.app/grain/">Lesson 06</a> · <a href="https://how-surfaces-work-l07-preview-production.up.railway.app/refract/">Lesson 07</a> · <a href="https://how-textures-work-l08-preview-production.up.railway.app/uv/">Lesson 08</a> · <a href="https://how-surfaces-work-l09-preview-production.up.railway.app/scatter/">Lesson 09</a> · <a href="https://how-textures-work-l10-preview-production.up.railway.app/mips/">Lesson 10</a> · <a href="https://how-surfaces-work-l11-preview-production.up.railway.app/aniso/">Lesson 11</a></div>
+      <div><a href="#top">Back to top</a></div>
+    </footer>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
