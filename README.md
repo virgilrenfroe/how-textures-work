@@ -45,3 +45,23 @@ These used to appear as on-page copy. The page now speaks only to students and t
 - **QA hooks:** `window.__HSW` (and `window.__HTW` on Textures) exposes renderer, scenes, shared state, frameCount, heroPost, and webglContexts() for `qa.mjs` (Playwright). Run it with `HSW_URL=<url> node qa.mjs`. It checks a single canvas, a non-blank hero, specimen rendering, controls, scissor alignment, anchors, fonts, offscreen skip, reduced motion, and visibility.
 - **Hosting:** Railway (Caddy static Dockerfile + Caddyfile + railway.toml), project `how-surfaces-work`.
 - **Workflow (from now on):** new lesson work goes on a branch with a GitHub PR and a separate preview deploy, not straight to `main`/production.
+
+## Lesson 13 · How Stickers Sit on Top (`/decal/`)
+
+Branch `lesson-13-decal`. Accent sticker magenta `#ff4fd8` (mint-seafoam `#7ee0c8` secondary).
+
+### Specimens
+1. **Place** — crate + logo via `DecalGeometry`; Offset X/Y, Scale, Rotation rebuild the decal.
+2. **Opacity / blend** — dirt stain; Cover vs Multiply (`MultiplyBlending`); Opacity slider.
+3. **Projection angle** — Angle slider tilts the projector; arrow helper; foreshortening on the side face.
+4. **Stack** — logo then scratch (`renderOrder`); Logo / Scratch chips; draw-order note.
+
+### Tech notes
+- `three/addons/geometries/DecalGeometry.js`. Canvas-made logo / dirt / scratch (no CDN images).
+- Decal materials use `polygonOffset` and `depthWrite: false` to avoid z-fighting.
+- Series hero v3, one scissor canvas, DPR caps, reduced-motion sync, ACES+sRGB+RoomEnvironment.
+- L12 coat omitted from nav while `/coat/` returned 404.
+- QA: `qa-decal.mjs`.
+
+### Preview
+Railway service `how-textures-work-l13-preview` tracking `lesson-13-decal`.
