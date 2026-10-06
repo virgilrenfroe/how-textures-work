@@ -45,3 +45,17 @@ These used to appear as on-page copy. The page now speaks only to students and t
 - **QA hooks:** `window.__HSW` (and `window.__HTW` on Textures) exposes renderer, scenes, shared state, frameCount, heroPost, and webglContexts() for `qa.mjs` (Playwright). Run it with `HSW_URL=<url> node qa.mjs`. It checks a single canvas, a non-blank hero, specimen rendering, controls, scissor alignment, anchors, fonts, offscreen skip, reduced motion, and visibility.
 - **Hosting:** Railway (Caddy static Dockerfile + Caddyfile + railway.toml), project `how-surfaces-work`.
 - **Workflow (from now on):** new lesson work goes on a branch with a GitHub PR and a separate preview deploy, not straight to `main`/production.
+
+## Lesson 06 · How Wood and Stone Get Their Patterns (`/grain/`)
+
+Procedural textures: a small rule makes a pattern, and the same rule makes endless variations. Four specimens plus a hero, all on the one shared WebGL canvas (scissor regions aligned to DOM boxes).
+
+- **Hero**: a turned wooden bowl drawn in rose halftone dots (hero v3: dots masked by render-target alpha, soft lens reveal that follows the pointer, bounding-sphere camera auto-fit). The bowl's wood is sampled in 3D from its object-space position.
+- **01 Noise**: a full-bleed `ShaderMaterial` strip. Top: 2D value-noise fBm (quintic fade, rotated octaves). Bottom: a graph of one horizontal slice. `Octaves` 1–6 and `Scale` sliders. OrbitControls are disabled (the sliders own the view).
+- **02 Wood**: `MeshPhysicalMaterial` with `onBeforeCompile`. Rings are `fract(length(p.yz − trunk) · rings)` around the x axis, with the radius pushed by 3D fBm (Warp). Ring id hashing varies latewood width; there are fine fibres and pores along the grain. `Ring spacing`, `Warp`, and `Turn` (rotates the block; OrbitControls disabled).
+- **03 Marble**: straight bands `sin(dot(p, dir) · k + turbulence · Σ|noise|)`, thin veins at the band zero-crossings, a soft halo, and grey clouds that follow the bands. `Turbulence` 0–1 and a `Gold veins` toggle.
+- **04 Cut the block**: two synced views. A clipping plane (`renderer.localClippingEnabled`) slices both boards. Left: a cap plane at the cut samples the same 3D wood function (`uGOff` offsets the cap into block space), so the cut face matches the sides. Right: the same wood is only a skin (DoubleSide; back faces shade as an empty interior) and has no cap, so cutting shows it is hollow. An accent outline marks the cut.
+
+Phones (coarse pointer or < 700 px): DPR cap 1.5 (otherwise 2), 3D noise octaves drop from 5 to 3, sliders are 44 px tall. Reduced motion uses a live `matchMedia` listener; spins and the lens drift stop and the ticker halts. ACES tone mapping, sRGB output, RoomEnvironment PMREM. No image files: every pattern is GLSL.
+
+QA: `node qa-grain.mjs` (BASE defaults to the l06 preview). It runs on Chromium 1440×900, Chromium 390×844 DPR3 touch (portrait and 844×390 landscape), and WebKit iPhone 13, plus a reduced-motion pass and series-link checks. Checks: one canvas, non-blank specimens, every control changes the render (including real CDP touch drags on sliders in Chromium phones; WebKit uses a pointer drag), the strict hero mask and no-overlap boxes, no horizontal scroll, the audience-lock scan, a leftover-copy scan for strings from other lessons, tab/og/twitter titles, the real-world section, 44 px sliders, and phone octaves. Screenshots go to `shots/`.

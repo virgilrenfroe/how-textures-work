@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>How Wood and Stone Get Their Patterns · Lesson 06 · Materials</title>
+  <meta name="description" content="Lesson 06 · Materials. See how a small rule makes wood grain and marble veins, and why a solid pattern matches when you cut it." />
+  <meta property="og:title" content="How Wood and Stone Get Their Patterns · Lesson 06 · Materials" />
+  <meta property="og:description" content="Lesson 06 · Materials. Noise, rings, and veins: a small rule makes endless wood and stone, inside and out." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="How Wood and Stone Get Their Patterns · Lesson 06 · Materials" />
+  <meta name="twitter:description" content="Lesson 06 · Materials. Noise, rings, and veins: a small rule makes endless wood and stone, inside and out." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #050505;
+      --paper: #f4efe6;
+      --cream: #e8dfd0;
+      --mute: rgba(244, 239, 230, 0.58);
+      --dim: rgba(244, 239, 230, 0.28);
+      --accent: #f08aa8;
+      --accent2: #d7a26c;
+      --steel: #d8c3ae;
+      --line: rgba(244, 239, 230, 0.14);
+      --card: #101010;
+      --placard: #0e0e0e;
+      --mono: "JetBrains Mono", ui-monospace, monospace;
+      --display: "Space Grotesk", sans-serif;
+      --body: "Gabarito", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+    body {
+      margin: 0;
+      background: var(--ink);
+      color: var(--paper);
+      font-family: var(--body);
+      font-size: 16px;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+    /* One shared full-page WebGL canvas (multiple-elements pattern) */
+    #c {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .content {
+      overflow-x: clip;
+      position: relative;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .content a, .content button, .content input, .content label,
+    .content .view, .content .chip, .content .ctrl {
+      pointer-events: auto;
+    }
+
+    /* —— Hero —— */
+    .hero {
+      min-height: 92vh;
+      padding: clamp(1.25rem, 4vw, 3rem);
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: clamp(1rem, 3vw, 2.5rem);
+      align-items: end;
+      position: relative;
+    }
+    .hero-kicker {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      margin-bottom: 1rem;
+    }
+    .hero h1 {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: clamp(3.4rem, 11.5vw, 7.6rem);
+      line-height: 0.9;
+      letter-spacing: -0.045em;
+      margin: 0 0 1.25rem;
+      max-width: 11ch;
+    }
+    .hero h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+    .hero-sub {
+      font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+      max-width: 34ch;
+      color: var(--mute);
+      margin: 0 0 1.75rem;
+      font-weight: 500;
+    }
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem 1.2rem;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .hero-meta span { color: var(--paper); }
+    .hero-aside {
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1.5rem;
+      padding-top: 0.5rem;
+    }
+    .hero-diagram {
+      border: 1px solid var(--line);
+      background: linear-gradient(160deg, #1c1712 0%, #0e0c0a 100%);
+      padding: 1.1rem 1.2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-diagram::before {
+      content: "";
+      position: absolute;
+      top: -40%;
+      right: -20%;
+      width: 70%;
+      height: 90%;
+      background: radial-gradient(circle, rgba(240,138,168,0.2), transparent 65%);
+      pointer-events: none;
+    }
+    .hero-diagram h2 {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin: 0 0 0.85rem;
+      color: var(--accent);
+      position: relative;
+    }
+    .diagram-rows {
+      display: grid;
+      gap: 0.55rem;
+      position: relative;
+      font-size: 13px;
+      color: var(--cream);
+    }
+    .diagram-rows div {
+      display: grid;
+      grid-template-columns: 7.5rem 1fr;
+      gap: 0.6rem;
+      align-items: baseline;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 0.45rem;
+    }
+    .diagram-rows b {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--steel);
+      font-weight: 400;
+    }
+    .scroll-cue {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .scroll-cue a { color: var(--paper); text-decoration: none; border-bottom: 1px solid var(--accent); }
+
+    /* —— Specimens —— */
+    .specimen {
+      scroll-margin-top: 8px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.85fr);
+      gap: 0;
+      min-height: 78vh;
+      border-top: 1px solid var(--line);
+      position: relative;
+    }
+    .specimen.centerpiece {
+      grid-template-columns: 1fr;
+      min-height: 92vh;
+    }
+    .view-wrap {
+      position: relative;
+      min-height: 52vh;
+      background: transparent;
+    }
+    .view {
+      width: 100%;
+      height: 100%;
+      min-height: 52vh;
+      position: relative;
+      touch-action: none;
+    }
+    .centerpiece .views {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 58vh;
+      border-bottom: 1px solid var(--line);
+    }
+    .centerpiece .view-pane {
+      position: relative;
+      border-right: 1px solid var(--line);
+      min-height: 58vh;
+    }
+    .centerpiece .view-pane:last-child { border-right: none; }
+    .view-label {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 3;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding: 6px 10px;
+      background: rgba(12,10,8,0.72);
+      border: 1px solid var(--line);
+      color: var(--accent2);
+      pointer-events: none;
+    }
+    .placard {
+      background: var(--placard);
+      border-left: 1px solid var(--line);
+      padding: clamp(1.25rem, 3vw, 2rem);
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      justify-content: center;
+    }
+    .centerpiece .placard {
+      border-left: none;
+      border-top: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 1.5rem 2rem;
+      align-items: start;
+    }
+    .specimen-num {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin: 0;
+    }
+    .specimen-title {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: clamp(1.7rem, 3.6vw, 2.55rem);
+      letter-spacing: -0.035em;
+      line-height: 1.05;
+      margin: 0;
+    }
+    .lesson {
+      font-size: 14.5px;
+      color: var(--cream);
+      margin: 0;
+    }
+    .lesson p {
+      margin: 0 0 0.55rem;
+    }
+    .lesson p:last-child { margin-bottom: 0; }
+    .try {
+      border: 1px dashed rgba(200, 245, 66, 0.45);
+      background: rgba(200, 245, 66, 0.06);
+      padding: 0.85rem 1rem;
+    }
+    .try strong {
+      display: block;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      margin-bottom: 0.35rem;
+      font-weight: 700;
+    }
+    .try p { margin: 0; font-size: 14px; color: var(--paper); }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+    .chip {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.45rem 0.7rem;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--paper);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .chip:hover, .chip[aria-pressed="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0c0a08;
+    }
+    .ctrls {
+      display: grid;
+      gap: 0.65rem;
+    }
+    .ctrl {
+      display: grid;
+      grid-template-columns: 6.5rem 1fr 2.6rem;
+      gap: 0.55rem;
+      align-items: center;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--mute);
+    }
+    .ctrl input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      height: 1.4rem;
+    }
+    .ctrl output { text-align: right; color: var(--paper); }
+
+    /* —— Teachers —— */
+    .teachers {
+      border-top: 1px solid var(--line);
+      padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 4vw, 3rem);
+      background: #100e0b;
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: clamp(1.5rem, 4vw, 3rem);
+    }
+    .teachers h2 {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: clamp(2.1rem, 5.2vw, 3.5rem);
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin: 0 0 0.75rem;
+    }
+    .teachers .lede {
+      color: var(--mute);
+      max-width: 36ch;
+      margin: 0;
+    }
+    .teach-grid {
+      display: grid;
+      gap: 1rem;
+    }
+    .teach-card {
+      border: 1px solid var(--line);
+      padding: 1.1rem 1.2rem;
+      background: var(--card);
+    }
+    .teach-card h3 {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--steel);
+      margin: 0 0 0.6rem;
+      font-weight: 700;
+    }
+    .teach-card ul {
+      margin: 0;
+      padding-left: 1.1rem;
+      color: var(--cream);
+      font-size: 14.5px;
+    }
+    .teach-card li { margin-bottom: 0.35rem; }
+    .teach-card p { margin: 0; font-size: 14.5px; color: var(--cream); }
+    .map-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    .map-cols .teach-card { margin: 0; }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 1.25rem clamp(1.25rem, 4vw, 3rem) 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.5rem;
+      justify-content: space-between;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    footer a { color: var(--paper); text-decoration: none; border-bottom: 1px solid var(--accent); }
+
+    .err {
+      position: fixed;
+      left: 12px; right: 12px; bottom: 12px;
+      z-index: 20;
+      background: #3a1212;
+      color: #ffd6d6;
+      padding: 12px 14px;
+      border-radius: 8px;
+      display: none;
+      white-space: pre-wrap;
+      font-family: var(--mono);
+      font-size: 12px;
+      pointer-events: none;
+    }
+
+    @media (max-width: 860px) {
+      .hero {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+      }
+      .hero h1 { max-width: none; }
+      .specimen, .centerpiece .placard, .teachers, .map-cols {
+        grid-template-columns: 1fr;
+      }
+      .placard { border-left: none; border-top: 1px solid var(--line); }
+      .centerpiece .views { grid-template-columns: 1fr; }
+      .centerpiece .view-pane { border-right: none; border-bottom: 1px solid var(--line); min-height: 42vh; }
+      .view, .view-wrap { min-height: 42vh; }
+      .specimen { min-height: auto; }
+    }
+  
+    .series-nav {
+      position: absolute;
+      top: clamp(1rem, 3vw, 1.75rem);
+      right: clamp(1rem, 3vw, 2rem);
+      z-index: 5;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .series-nav a {
+      color: var(--paper);
+      text-decoration: none;
+      border-bottom: 1px solid var(--accent);
+      pointer-events: auto;
+    }
+    .flat-uv {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      width: min(42%, 220px);
+      aspect-ratio: 1;
+      border: 1px solid var(--line);
+      background: #0a0908;
+      z-index: 3;
+      pointer-events: none;
+      display: none;
+    }
+    .flat-uv.show { display: block; }
+    .flat-uv canvas { width: 100%; height: 100%; display: block; }
+    .flat-uv label {
+      position: absolute;
+      top: 6px; left: 6px;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      background: rgba(12,10,8,0.75);
+      padding: 3px 6px;
+      border: 1px solid var(--line);
+    }
+
+
+    /* Series craft — Ruben-energy principles (not a copy) */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 50;
+      opacity: 0.045;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      mix-blend-mode: overlay;
+    }
+    .hero-kicker::before {
+      content: "";
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      margin-right: 0.55rem;
+      border-radius: 50%;
+      background: var(--accent2);
+      box-shadow: 0 0 10px var(--accent2);
+      vertical-align: 1px;
+    }
+    .chip {
+      border-radius: 999px !important;
+      padding: 0.5rem 0.95rem !important;
+      letter-spacing: 0.08em !important;
+      transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    }
+    .chip:hover {
+      transform: translateY(-1px);
+      border-color: var(--accent);
+    }
+    .chip:active { transform: translateY(0); }
+    .try {
+      border-radius: 14px;
+    }
+    .hero-diagram {
+      border-radius: 16px;
+    }
+    .teach-card {
+      border-radius: 14px;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .teach-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .series-nav a {
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      border-bottom: 1px solid var(--accent);
+      padding: 0.45rem 0.85rem;
+      transition: background 0.18s ease, color 0.18s ease;
+    }
+    .series-nav a:hover {
+      background: var(--accent);
+      color: #0a0a0a;
+      border-color: var(--accent);
+    }
+    .view-label {
+      border-radius: 999px;
+    }
+    .ctrl input[type="range"] {
+      height: 1.25rem;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .chip, .teach-card, .series-nav a { transition: none !important; }
+    }
+
+
+    .ticker {
+      position: relative;
+      z-index: 6;
+      overflow: hidden;
+      border-bottom: 1px solid var(--line);
+      background: #000;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      pointer-events: none;
+    }
+    .ticker-track {
+      display: flex;
+      width: max-content;
+      gap: 0;
+      animation: ticker-scroll 42s linear infinite;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      white-space: nowrap;
+    }
+    .ticker-track span { padding: 0 1.25rem; }
+    .ticker-track span::before {
+      content: "✦";
+      margin-right: 1.25rem;
+      color: var(--accent);
+      opacity: 0.7;
+    }
+    @keyframes ticker-scroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ticker-track { animation: none; }
+    }
+    .hero {
+      padding-top: clamp(1rem, 3vw, 2rem);
+      align-items: stretch !important;
+      grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.25fr) !important;
+      grid-template-rows: auto auto;
+      min-height: 0 !important;
+      overflow: visible;
+    }
+    .hero-copy {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding-bottom: 1rem;
+    }
+    .hero-copy .scroll-cue { margin-top: 1.75rem; }
+    .hero-stage {
+      position: relative;
+      min-height: min(76vh, 780px);
+      margin-right: clamp(-5rem, -6vw, -1.25rem);
+    }
+    .hero-stage .view[data-scene="hero"] {
+      position: absolute;
+      inset: 0;
+      width: auto;
+      height: auto;
+      touch-action: pan-y;
+      cursor: crosshair;
+    }
+    /* Glossary: a normal block in the flow, never over the hero */
+    .hero-gloss {
+      grid-column: 1 / -1;
+      position: relative;
+    }
+    .hero-gloss .diagram-rows {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      column-gap: 1.5rem;
+    }
+    .series-nav {
+      position: relative !important;
+      top: auto !important;
+      right: auto !important;
+      display: flex;
+      justify-content: flex-end;
+      padding: 0.9rem clamp(1.25rem, 4vw, 3rem) 0;
+    }
+    @media (max-width: 860px) {
+      .hero { grid-template-columns: 1fr !important; padding-top: 0.75rem; }
+      .hero-stage {
+        order: -1;
+        min-height: 46vh;
+        margin: 0 -1.25rem 0.5rem;
+      }
+      .hero-copy { padding-bottom: 0; }
+      .hero-gloss .diagram-rows { grid-template-columns: 1fr; }
+      .series-nav { padding-top: 0.75rem; }
+    }
+
+  
+    /* —— Lesson 06 craft: cut, sanded, polished —— */
+    .specimen-num {
+      display: inline-block;
+      border: 1.5px solid var(--accent);
+      color: var(--accent) !important;
+      padding: 0.2rem 0.55rem 0.15rem;
+      border-radius: 4px;
+      transform: rotate(-1.2deg);
+      box-shadow: 1px 1px 0 rgba(240, 138, 168, 0.25);
+    }
+    .try {
+      border: 1px solid var(--line);
+      border-top: 2px dashed rgba(240, 138, 168, 0.55);
+      background:
+        radial-gradient(rgba(244, 239, 230, 0.045) 1px, transparent 1.2px) 0 0 / 7px 7px,
+        #0f0d0a;
+    }
+    .teach-card {
+      background:
+        radial-gradient(rgba(244, 239, 230, 0.04) 1px, transparent 1.2px) 0 0 / 6px 6px,
+        var(--card);
+    }
+    .hero h1 em {
+      text-shadow: 2px 2px 0 rgba(215, 162, 108, 0.35);
+    }
+    .real-world {
+      border-top: 1px solid var(--line);
+      padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 4vw, 3rem);
+      scroll-margin-top: 1rem;
+    }
+    .rw-head { max-width: 62ch; margin-bottom: clamp(1.1rem, 3vw, 1.75rem); }
+    .rw-title {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: clamp(2.1rem, 5.2vw, 3.5rem);
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin: 0 0 0.75rem;
+    }
+    .rw-head .lede { color: var(--mute); margin: 0; max-width: 52ch; }
+    .rw-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.85rem;
+    }
+    @media (max-width: 1080px) { .rw-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 640px) { .rw-list { grid-template-columns: minmax(0, 1fr); } }
+    .rw-item {
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--accent);
+      border-radius: 14px;
+      padding: 1rem 1.1rem 1.1rem;
+      background: var(--card);
+      min-width: 0;
+    }
+    .rw-setting {
+      display: block;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--steel);
+      margin-bottom: 0.4rem;
+    }
+    .rw-job {
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 1.12rem;
+      letter-spacing: -0.01em;
+      margin: 0 0 0.45rem;
+      color: var(--cream);
+    }
+    .rw-item p { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--cream); }
+    .hero h1 {
+      font-size: clamp(2.9rem, 7.6vw, 6rem) !important;
+      max-width: 12ch !important;
+      line-height: 0.92 !important;
+    }
+    .view[data-scene="noise"] { touch-action: pan-y; cursor: default; }
+    .view[data-scene="wood"] { touch-action: pan-y; cursor: default; }
+    .view-label.solid { color: var(--accent2); }
+    .view-label.painted { color: var(--accent); }
+    .grain-key {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem 1rem;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--mute);
+      margin: 0;
+    }
+    .grain-key b { color: var(--paper); font-weight: 500; }
+    /* Big touch targets for sliders on touch screens and narrow windows */
+    @media (pointer: coarse), (max-width: 700px) {
+      .ctrl { grid-template-columns: 5.6rem 1fr 2.8rem; }
+      .ctrl input[type="range"] { height: 44px !important; min-height: 44px; margin: 0; }
+      .chip { min-height: 44px; }
+    }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div class="err" id="err"></div>
+
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track">
+      <span>NOISE</span><span>OCTAVES</span><span>FBM</span><span>GROWTH RINGS</span><span>GRAIN</span><span>END GRAIN</span><span>TURBULENCE</span><span>VEINS</span><span>FOLDS</span><span>SOLID TEXTURE</span><span>CUT FACE</span><span>RULE NOT IMAGE</span>
+      <span>NOISE</span><span>OCTAVES</span><span>FBM</span><span>GROWTH RINGS</span><span>GRAIN</span><span>END GRAIN</span><span>TURBULENCE</span><span>VEINS</span><span>FOLDS</span><span>SOLID TEXTURE</span><span>CUT FACE</span><span>RULE NOT IMAGE</span>
+    </div>
+  </div>
+  <div class="content">
+    <nav class="series-nav" style="gap:0.45rem;flex-wrap:wrap">
+      <a href="https://how-surfaces-work-production.up.railway.app/">Lesson 01 · Surfaces</a>
+      <a href="https://how-textures-work-production.up.railway.app/">Lesson 02 · Textures</a>
+      <a href="https://how-surfaces-work-production.up.railway.app/sheen/">Lesson 03 · Soft</a>
+      <a href="https://how-textures-work-preview-production.up.railway.app/wear/">Lesson 04 · Wear</a>
+      <a href="https://how-surfaces-work-l05-preview-production.up.railway.app/fresnel/">Lesson 05 · Edges</a>
+    </nav>
+    <header class="hero" id="top">
+      <div class="hero-copy">
+        <p class="hero-kicker">Lesson 06 · Materials</p>
+        <h1>How <em>Wood</em> and Stone Get Their Patterns</h1>
+        <p class="hero-sub">Some patterns are not painted. A small rule makes them, and the same rule can make endless new versions.</p>
+        <div class="hero-meta">
+          <div>Time <span>20 min</span></div>
+          <div>You will learn <span>how noise makes grain and veins</span></div>
+          <div>Try first <span>drag across the bowl to see the real wood</span></div>
+          <div>Core lesson <span>A rule, not an image</span></div>
+        </div>
+        <p class="scroll-cue"><a href="#s01">Enter the lab ↓</a></p>
+      </div>
+      <div class="hero-stage">
+        <div class="view" data-scene="hero" tabindex="0" aria-label="A turned wooden bowl. Drag across it to see the real wood under the dot pattern."></div>
+      </div>
+      <div class="hero-diagram hero-gloss" aria-label="Lesson map">
+        <h2>What you will see</h2>
+        <div class="diagram-rows">
+          <div><b>Noise</b><span>Random values that change smoothly from place to place.</span></div>
+          <div><b>Octave</b><span>One layer of noise. Each new layer is twice as fine.</span></div>
+          <div><b>fBm</b><span>Many octaves added together: big shapes plus small detail.</span></div>
+          <div><b>Growth ring</b><span>One year of tree growth, seen as a band in the wood.</span></div>
+          <div><b>Turbulence</b><span>Noise that bends straight bands into folds and veins.</span></div>
+          <div><b>Solid texture</b><span>A pattern that fills the whole 3D block, not only its skin.</span></div>
+        </div>
+      </div>
+    </header>
+
+    <section class="specimen" id="s01">
+      <div class="view-wrap">
+        <div class="view" data-scene="noise" tabindex="0" aria-label="A strip of noise. The top shows the noise as light and dark. The bottom shows one line through it as a graph."></div>
+      </div>
+      <aside class="placard">
+        <p class="specimen-num">Specimen 01 — Noise</p>
+        <h2 class="specimen-title">Random, but smooth</h2>
+        <div class="lesson">
+          <p>Noise is a list of random values that blend smoothly into each other.</p>
+          <p>The top of the strip shows noise as light and dark. The graph below shows one line across it.</p>
+          <p>One octave gives only big, soft hills. Each extra octave adds hills that are half as wide and half as tall.</p>
+          <p>Added together, the octaves give big shapes with fine detail. This sum is called fBm.</p>
+        </div>
+        <div class="try">
+          <strong>Try this</strong>
+          <p>Set Octaves to 1 and look at the graph. Then raise it to 6, one step at a time. The big hills stay, and small bumps appear on top of them.</p>
+        </div>
+        <div class="ctrls">
+          <label class="ctrl">Octaves
+            <input id="noise-oct" type="range" min="1" max="6" step="1" value="3" />
+            <output id="noise-oct-out" for="noise-oct">3</output>
+          </label>
+          <label class="ctrl">Scale
+            <input id="noise-scale" type="range" min="1" max="12" step="0.1" value="4" />
+            <output id="noise-scale-out" for="noise-scale">4.0</output>
+          </label>
+        </div>
+      </aside>
+    </section>
+
+    <section class="specimen" id="s02">
+      <div class="view-wrap">
+        <div class="view" data-scene="wood" tabindex="0" aria-label="A block of wood. Use the Turn slider to see the end grain and the long grain."></div>
+      </div>
+      <aside class="placard">
+        <p class="specimen-num">Specimen 02 — Wood</p>
+        <h2 class="specimen-title">Rings around a trunk</h2>
+        <div class="lesson">
+          <p>A tree grows one new ring each year. Light wood grows in spring, and darker wood grows in late summer.</p>
+          <p>The rule here draws circles around a line, like rings around a trunk.</p>
+          <p>Noise pushes the circles sideways, so no two rings are the same.</p>
+          <p>On the end of the board you see the rings. On the long side, the same rings stretch out into lines and arches called grain.</p>
+        </div>
+        <div class="try">
+          <strong>Try this</strong>
+          <p>Move Turn to see the end of the board, then the long side. Set Warp to 0 and the rings become perfect circles, which look fake. Raise Warp until they look real.</p>
+        </div>
+        <div class="ctrls">
+          <label class="ctrl">Ring spacing
+            <input id="wood-spacing" type="range" min="0.4" max="2.5" step="0.01" value="1" />
+            <output id="wood-spacing-out" for="wood-spacing">1.00</output>
+          </label>
+          <label class="ctrl">Warp
+            <input id="wood-warp" type="range" min="0" max="1" step="0.01" value="0.55" />
+            <output id="wood-warp-out" for="wood-warp">0.55</output>
+          </label>
+          <label class="ctrl">Turn
+            <input id="wood-turn" type="range" min="0" max="90" step="1" value="35" />
+            <output id="wood-turn-out" for="wood-turn">35</output>
+          </label>
+        </div>
+      </aside>
+    </section>
+
+    <section class="specimen" id="s03">
+      <div class="view-wrap">
+        <div class="view" data-scene="marble" tabindex="0" aria-label="A polished marble slab and sphere: 3D view. Drag to turn."></div>
+      </div>
+      <aside class="placard">
+        <p class="specimen-num">Specimen 03 — Marble</p>
+        <h2 class="specimen-title">Bands bent by heat and pressure</h2>
+        <div class="lesson">
+          <p>Marble starts as limestone. Deep underground, heat and pressure change it into new crystals.</p>
+          <p>Over a very long time, the rock can bend and fold without breaking. Layers that were flat become curved bands.</p>
+          <p>Small amounts of other minerals, such as clay or iron oxide, give the bands and veins their color. Some veins form where cracks fill with new minerals.</p>
+          <p>The rule here starts with straight bands. Turbulence is noise that bends them, like the folding in real rock.</p>
+        </div>
+        <div class="try">
+          <strong>Try this</strong>
+          <p>Set Turbulence to 0. You see straight, flat layers. Raise it slowly and watch the layers fold into veins. Then press Gold veins to change the mineral color.</p>
+        </div>
+        <div class="chips" role="group" aria-label="Marble toggles">
+          <button type="button" class="chip" data-marble="gold" aria-pressed="false">Gold veins</button>
+        </div>
+        <div class="ctrls">
+          <label class="ctrl">Turbulence
+            <input id="marble-turb" type="range" min="0" max="1" step="0.01" value="0.6" />
+            <output id="marble-turb-out" for="marble-turb">0.60</output>
+          </label>
+        </div>
+      </aside>
+    </section>
+
+    <section class="specimen centerpiece" id="s04">
+      <div class="views">
+        <div class="view-pane">
+          <div class="view-label solid">Solid pattern · 3D rule</div>
+          <div class="view" data-scene="cut-solid" tabindex="0" aria-label="A wood block made with a 3D rule, cut open. Drag to turn."></div>
+        </div>
+        <div class="view-pane">
+          <div class="view-label painted">Painted image · 2D picture</div>
+          <div class="view" data-scene="cut-painted" tabindex="0" aria-label="A wood block covered only by a 2D picture of wood, cut open. It is empty inside. Drag to turn."></div>
+        </div>
+      </div>
+      <aside class="placard">
+        <div>
+          <p class="specimen-num">Specimen 04 — Cut the block</p>
+          <h2 class="specimen-title">The inside matches the outside</h2>
+          <div class="lesson">
+            <p>Left: the wood comes from a 3D rule. The rule gives a color to every point inside the block, not only to its skin.</p>
+            <p>Right: a 2D picture of the same wood covers only the skin, like a sticker.</p>
+            <p>From the outside, the two blocks look the same.</p>
+            <p>Cut the left block, and the new face shows rings that join the grain on the sides. Cut the right block, and it is empty. A 2D picture has no inside, so there is nothing to show.</p>
+          </div>
+        </div>
+        <div>
+          <div class="try">
+            <strong>Try this</strong>
+            <p>Drag Cut slowly. On the left, follow one dark ring from the side of the block onto the cut face. Then look into the right block. What is inside it?</p>
+          </div>
+          <div class="chips" role="group" aria-label="Cut toggles">
+            <button type="button" class="chip" data-cut="spin" aria-pressed="true">Turntable</button>
+          </div>
+          <div class="ctrls" style="margin-top:1rem">
+            <label class="ctrl">Cut
+              <input id="cut-depth" type="range" min="0" max="1" step="0.01" value="0.4" />
+              <output id="cut-depth-out" for="cut-depth">0.40</output>
+            </label>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="real-world" id="real-world" aria-labelledby="rw-title">
+      <div class="rw-head">
+        <h2 class="rw-title" id="rw-title">Where you see this</h2>
+        <p class="lede">Real people in real jobs use rules like these to make wood and stone, or they read the real patterns in nature.</p>
+      </div>
+      <ul class="rw-list">
+        <li class="rw-item">
+          <span class="rw-setting">Game worlds</span>
+          <h3 class="rw-job">Technical artist</h3>
+          <p>A technical artist builds procedural materials that make rock, sand, and bark from rules instead of one painted image. The noise does not repeat in an obvious way, so one material can cover a huge game world without a visible grid.</p>
+        </li>
+        <li class="rw-item">
+          <span class="rw-setting">Film visual effects</span>
+          <h3 class="rw-job">FX artist</h3>
+          <p>An FX artist sets up objects that break, crack, or get carved in a shot. When wood, rock, or marble use a solid 3D pattern, every new broken face shows matching grain or veins, so the inside looks as real as the outside.</p>
+        </li>
+        <li class="rw-item">
+          <span class="rw-setting">Architecture</span>
+          <h3 class="rw-job">Architectural visualization artist</h3>
+          <p>An architectural visualization artist puts wood floors and marble counters into pictures of rooms that are not built yet. Variation from noise gives each board and slab its own grain, so the floor does not look like one board copied many times.</p>
+        </li>
+        <li class="rw-item">
+          <span class="rw-setting">Furniture making</span>
+          <h3 class="rw-job">Furniture designer</h3>
+          <p>A furniture designer chooses how each board is cut from the log and which way the grain runs. The cut decides the figure, such as straight lines on quartersawn boards or arches on flatsawn boards, and wood is much stronger along the grain than across it.</p>
+        </li>
+        <li class="rw-item">
+          <span class="rw-setting">Earth science</span>
+          <h3 class="rw-job">Geologist</h3>
+          <p>A geologist reads the bands and veins in marble to learn the history of the rock. Folded bands show that the rock bent under heat and pressure deep underground, and veins show where cracks opened and new minerals grew inside them.</p>
+        </li>
+      </ul>
+    </section>
+
+    <section class="teachers" id="teachers">
+      <div>
+        <h2>For teachers</h2>
+        <p class="lede">Short objectives, one classroom loop, and how the lab maps to studio practice, wood science, and geology.</p>
+      </div>
+      <div class="teach-grid">
+        <div class="teach-card">
+          <h3>Learning objectives</h3>
+          <ul>
+            <li>Describe noise as random values that change smoothly, and octaves as layers of finer detail.</li>
+            <li>Explain why wood shows rings on the end of a board and lines or arches on its long side.</li>
+            <li>Explain how heat, pressure, and minerals give marble its folded bands and veins.</li>
+            <li>Explain why a 3D pattern matches on a cut face and a 2D picture does not.</li>
+          </ul>
+        </div>
+        <div class="teach-card">
+          <h3>10-minute classroom activity</h3>
+          <p>1) Give each pair a wooden pencil or a scrap of wood, and a photo of a marble surface. 2) Students sketch the end and the long side of the wood, and mark one ring on both. 3) They draw arrows on the marble photo to show where the bands fold. 4) Finish on Specimen 04: cut both blocks and write one sentence on why only one cut face matches.</p>
+        </div>
+        <div class="map-cols">
+          <div class="teach-card">
+            <h3>Art &amp; design map</h3>
+            <p>Procedural materials for games and film, wood and stone in interior visualization, grain direction and figure in furniture, faux marble and wood graining in decorative painting.</p>
+          </div>
+          <div class="teach-card">
+            <h3>Science map</h3>
+            <p>Tree growth rings and dating by rings, earlywood and latewood, anisotropy (wood is stronger along the grain), metamorphic rock, folding under heat and pressure, and mineral veins in cracks.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div>How Wood and Stone Get Their Patterns · Lesson 06 · Materials · <a href="https://how-surfaces-work-production.up.railway.app/">Lesson 01</a> · <a href="https://how-textures-work-production.up.railway.app/">Lesson 02</a> · <a href="https://how-surfaces-work-production.up.railway.app/sheen/">Lesson 03</a> · <a href="https://how-textures-work-preview-production.up.railway.app/wear/">Lesson 04</a> · <a href="https://how-surfaces-work-l05-preview-production.up.railway.app/fresnel/">Lesson 05</a></div>
+      <div><a href="#top">Back to top</a></div>
+    </footer>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
