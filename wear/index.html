@@ -702,44 +702,39 @@
       bottom: clamp(10px, 2vw, 18px);
       z-index: 30;
       display: grid;
-      gap: 0.3rem;
-      justify-items: end;
-      pointer-events: none;
+      gap: 0.15rem;
+      padding: 0.4rem 0.75rem 0.45rem;
+      border: 1px solid var(--accent);
+      border-radius: 14px;
+      background: #0c0a08;
+      box-shadow: 0 0 0 6px #0c0a08, 0 10px 30px rgba(0, 0, 0, 0.6);
       font-family: var(--mono);
+      pointer-events: auto;
     }
     .age-pill {
-      pointer-events: auto;
       display: flex;
       align-items: center;
       gap: 0.6rem;
-      padding: 0.45rem 0.85rem;
-      border: 1px solid var(--accent);
-      border-radius: 999px;
-      background: rgba(12, 10, 8, 0.9);
-      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(255, 176, 46, 0.12);
       font-size: 11px;
       letter-spacing: 0.14em;
       text-transform: uppercase;
       color: var(--accent);
     }
-    .age-pill input[type="range"] { width: clamp(110px, 16vw, 180px); accent-color: var(--accent); margin: 0; }
+    .age-pill input[type="range"] { width: clamp(110px, 14vw, 170px); accent-color: var(--accent); margin: 0; }
     .age-pill output { color: var(--paper); min-width: 3.2ch; text-align: right; }
     .age-note {
       margin: 0;
-      max-width: 34ch;
-      padding: 0.25rem 0.6rem;
-      border-radius: 6px;
-      background: rgba(12, 10, 8, 0.82);
-      font-size: 10.5px;
-      letter-spacing: 0.04em;
+      font-size: 10px;
+      letter-spacing: 0.03em;
       color: var(--cream, #e8dfd0);
-      text-align: right;
+      opacity: 0.85;
     }
+    footer { margin-bottom: 84px; }
     @media (max-width: 700px) {
-      .age-dock { left: 10px; right: 10px; justify-items: stretch; }
-      .age-pill { justify-content: space-between; }
+      .age-dock { left: 8px; right: 8px; bottom: 8px; padding: 0.35rem 0.7rem 0.4rem; }
       .age-pill input[type="range"] { flex: 1; width: auto; }
-      .age-note { max-width: none; text-align: center; }
+      .age-note { font-size: 9.5px; }
+      footer { margin-bottom: 76px; }
     }
   </style>
   <script type="importmap">
