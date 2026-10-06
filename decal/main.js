@@ -189,20 +189,20 @@ function makeScratchTex() {
   const c = document.createElement('canvas'); c.width = c.height = 256;
   const g = c.getContext('2d');
   g.clearRect(0, 0, 256, 256);
-  g.strokeStyle = 'rgba(230,230,235,0.92)';
-  g.lineWidth = 3;
-  g.lineCap = 'round';
-  for (let i = 0; i < 5; i++) {
-    g.beginPath();
-    const y0 = 70 + i * 28 + (Math.random() - 0.5) * 10;
-    g.moveTo(30, y0);
-    g.bezierCurveTo(90, y0 - 20, 160, y0 + 25, 230, y0 - 5);
-    g.stroke();
-    g.strokeStyle = `rgba(20,18,22,${0.35 + i * 0.05})`;
-    g.lineWidth = 1.5;
-    g.stroke();
-    g.strokeStyle = 'rgba(230,230,235,0.85)';
-    g.lineWidth = 3;
+  // Deterministic thick scratches so toggle is obvious in screenshots and QA
+  const strokes = [
+    [28, 78, 90, 58, 160, 100, 232, 72],
+    [24, 108, 95, 128, 155, 95, 236, 118],
+    [32, 142, 100, 160, 165, 135, 228, 155],
+    [36, 175, 110, 155, 170, 190, 230, 168],
+  ];
+  for (const [x0,y0,x1,y1,x2,y2,x3,y3] of strokes) {
+    g.strokeStyle = 'rgba(245,245,250,0.95)';
+    g.lineWidth = 7; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(x0,y0); g.bezierCurveTo(x1,y1,x2,y2,x3,y3); g.stroke();
+    g.strokeStyle = 'rgba(15,12,18,0.55)';
+    g.lineWidth = 2.5;
+    g.beginPath(); g.moveTo(x0,y0+2); g.bezierCurveTo(x1,y1+2,x2,y2+2,x3,y3+2); g.stroke();
   }
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;

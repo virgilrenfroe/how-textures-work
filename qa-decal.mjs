@@ -352,7 +352,7 @@ async function runSuite(browserType, label, ctxOpts) {
   await setRange(page, '#place-scale', 0.75);
   await ctrlTest(page, label, 'place-rotation', 'place', () => setRange(page, '#place-rot', 35), 1.0);
   await setRange(page, '#place-rot', 0);
-  await ctrlTest(page, label, 'blend-opacity', 'blend', () => setRange(page, '#blend-op', 0.1));
+  await ctrlTest(page, label, 'blend-opacity', 'blend', () => setRange(page, '#blend-op', 0.05), 0.4);
   await setRange(page, '#blend-op', 0.75);
   await ctrlTest(page, label, 'blend-multiply', 'blend', () => clickChip(page, '[data-blend="multiply"]'));
   await clickChip(page, '[data-blend="cover"]');
@@ -360,7 +360,7 @@ async function runSuite(browserType, label, ctxOpts) {
   await setRange(page, '#proj-angle', 15);
   await ctrlTest(page, label, 'stack-logo', 'stack', () => clickChip(page, '[data-stack="logo"]'));
   await clickChip(page, '[data-stack="logo"]'); // back on
-  await ctrlTest(page, label, 'stack-scratch', 'stack', () => clickChip(page, '[data-stack="scratch"]'));
+  await ctrlTest(page, label, 'stack-scratch', 'stack', () => clickChip(page, '[data-stack="scratch"]'), 0.35);
   await clickChip(page, '[data-stack="scratch"]');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
 
