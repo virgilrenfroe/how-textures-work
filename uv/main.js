@@ -760,7 +760,7 @@ window.__HTW = window.__HSW = {
   renderer,
   shared,
   get frameCount() { return frameCount; },
-  get reducedMotion() { return reducedMotion; },
+  get reducedMotion() { syncReduced(); return reducedMotion; },
   applyUvMode,
   applySeamOffset,
   applyTripOn,

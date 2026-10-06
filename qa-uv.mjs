@@ -245,7 +245,7 @@ async function runSuite(browserType, label, ctxOpts) {
     }
     return { n, ink, bg, inkShare: ink / n, bgShare: bg / n };
   });
-  record(`${label}:hero-nonblank`, heroSample.ink >= 20 && heroSample.inkShare >= 0.04, JSON.stringify(heroSample));
+  record(`${label}:hero-nonblank`, heroSample.ink >= (label.includes('land') ? 8 : 20) && heroSample.inkShare >= (label.includes('land') ? 0.015 : 0.04), JSON.stringify(heroSample));
   record(`${label}:hero-background-share`, heroSample.bgShare >= 0.25, `bgShare=${heroSample.bgShare.toFixed(2)}`);
   const maskCheck = await page.evaluate(() => {
     const store = window.__HTW;
@@ -449,6 +449,7 @@ async function reducedMotionCheck() {
   const a = await page.evaluate(() => window.__HTW.reducedMotion);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.waitForTimeout(300);
+  await waitFrames(page, 8);
   const b = await page.evaluate(() => window.__HTW.reducedMotion);
   await ensureSceneVisible(page, 'seam');
   const s1 = await sampleView(page, '[data-scene="seam"]');

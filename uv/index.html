@@ -793,6 +793,13 @@
       margin: 0.4rem 0 0;
     }
     .texel-readout b { color: var(--paper); font-weight: 500; }
+
+    @media (orientation: landscape) and (max-height: 500px) {
+      .hero { min-height: 100vh; grid-template-columns: 1fr 1fr; align-items: center; }
+      .hero-stage { min-height: 78vh; }
+      .hero-stage .view[data-scene="hero"] { min-height: 78vh; }
+      .hero-diagram { display: none; } /* free vertical space for the form */
+    }
   </style>
   <script type="importmap">
   {
