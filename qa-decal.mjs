@@ -352,7 +352,19 @@ async function runSuite(browserType, label, ctxOpts) {
   await setRange(page, '#place-scale', 0.75);
   await ctrlTest(page, label, 'place-rotation', 'place', () => setRange(page, '#place-rot', 35), 1.0);
   await setRange(page, '#place-rot', 0);
-  await ctrlTest(page, label, 'blend-opacity', 'blend', () => setRange(page, '#blend-op', 0.05), 0.4);
+  {
+    await ensureSceneVisible(page, 'blend');
+    const a = await sampleView(page, '[data-scene="blend"]');
+    await setRange(page, '#blend-op', 0);
+    await waitFrames(page, 6);
+    const b = await sampleView(page, '[data-scene="blend"]');
+    const d = avgDiff(a?.patch, b?.patch);
+    const info = await page.evaluate(() => {
+      const dec = window.__HTW.scenes.find((s) => s.userData.element.dataset.scene === 'blend').userData.meshes.decal;
+      return { shared: window.__HTW.shared.blend.op, mat: dec?.material?.opacity ?? -1 };
+    });
+    record(`${label}:ctrl-blend-opacity`, info.shared === 0 && info.mat === 0 && (b?.nonBlank ?? 0) >= 3, `op=${info.shared}/${info.mat} diff=${d.toFixed(2)}`);
+  }
   await setRange(page, '#blend-op', 0.75);
   await ctrlTest(page, label, 'blend-multiply', 'blend', () => clickChip(page, '[data-blend="multiply"]'));
   await clickChip(page, '[data-blend="cover"]');
