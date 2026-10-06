@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>How Maps Wrap a Shape · Lesson 08 · Materials</title>
+  <meta name="description" content="Lesson 08 · Materials. See how UV maps wrap a flat image onto a 3D shape, why seams and stretch show, and how triplanar mapping skips UVs." />
+  <meta property="og:title" content="How Maps Wrap a Shape · Lesson 08 · Materials" />
+  <meta property="og:description" content="Lesson 08 · Materials. UV maps, seams, stretch, and triplanar mapping — how a flat image wraps a 3D shape." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="How Maps Wrap a Shape · Lesson 08 · Materials" />
+  <meta name="twitter:description" content="Lesson 08 · Materials. UV maps, seams, stretch, and triplanar mapping — how a flat image wraps a 3D shape." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #050505;
+      --paper: #f4efe6;
+      --cream: #e8dfd0;
+      --mute: rgba(244, 239, 230, 0.58);
+      --dim: rgba(244, 239, 230, 0.28);
+      --accent: #7b8cff;
+      --accent2: #c6e05a;
+      --steel: #a8b4d8;
+      --line: rgba(244, 239, 230, 0.14);
+      --card: #101010;
+      --placard: #0e0e0e;
+      --mono: "JetBrains Mono", ui-monospace, monospace;
+      --display: "Space Grotesk", sans-serif;
+      --body: "Gabarito", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+    body {
+      margin: 0;
+      background: var(--ink);
+      color: var(--paper);
+      font-family: var(--body);
+      font-size: 16px;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+    /* One shared full-page canvas (multiple view regions) */
+    #c {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .content {
+      overflow-x: clip;
+      position: relative;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .content a, .content button, .content input, .content label,
+    .content .view, .content .chip, .content .ctrl {
+      pointer-events: auto;
+    }
+
+    /* —— Hero —— */
+    .hero {
+      min-height: 92vh;
+      padding: clamp(1.25rem, 4vw, 3rem);
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: clamp(1rem, 3vw, 2.5rem);
+      align-items: end;
+      position: relative;
+    }
+    .hero-kicker {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      margin-bottom: 1rem;
+    }
+    .hero h1 {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: clamp(3.4rem, 11.5vw, 7.6rem);
+      line-height: 0.9;
+      letter-spacing: -0.045em;
+      margin: 0 0 1.25rem;
+      max-width: 11ch;
+    }
+    .hero h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+    .hero-sub {
+      font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+      max-width: 34ch;
+      color: var(--mute);
+      margin: 0 0 1.75rem;
+      font-weight: 500;
+    }
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem 1.2rem;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .hero-meta span { color: var(--paper); }
+    .hero-aside {
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 1.5rem;
+      padding-top: 0.5rem;
+    }
+    .hero-diagram {
+      border: 1px solid var(--line);
+      background: linear-gradient(160deg, #1c1712 0%, #0e0c0a 100%);
+      padding: 1.1rem 1.2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-diagram::before {
+      content: "";
+      position: absolute;
+      top: -40%;
+      right: -20%;
+      width: 70%;
+      height: 90%;
+      background: radial-gradient(circle, rgba(123,140,255,0.2), transparent 65%);
+      pointer-events: none;
+    }
+    .hero-diagram h2 {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin: 0 0 0.85rem;
+      color: var(--accent);
+      position: relative;
+    }
+    .diagram-rows {
+      display: grid;
+      gap: 0.55rem;
+      position: relative;
+      font-size: 13px;
+      color: var(--cream);
+    }
+    .diagram-rows div {
+      display: grid;
+      grid-template-columns: 7.5rem 1fr;
+      gap: 0.6rem;
+      align-items: baseline;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 0.45rem;
+    }
+    .diagram-rows b {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--steel);
+      font-weight: 400;
+    }
+    .scroll-cue {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    .scroll-cue a { color: var(--paper); text-decoration: none; border-bottom: 1px solid var(--accent); }
+
+    /* —— Specimens —— */
+    .specimen {
+      scroll-margin-top: 8px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.85fr);
+      gap: 0;
+      min-height: 78vh;
+      border-top: 1px solid var(--line);
+      position: relative;
+    }
+    .specimen.centerpiece {
+      grid-template-columns: 1fr;
+      min-height: 92vh;
+    }
+    .view-wrap {
+      position: relative;
+      min-height: 52vh;
+      background: transparent;
+    }
+    .view {
+      width: 100%;
+      height: 100%;
+      min-height: 52vh;
+      position: relative;
+      touch-action: none;
+    }
+    .centerpiece .views {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 58vh;
+      border-bottom: 1px solid var(--line);
+    }
+    .centerpiece .view-pane {
+      position: relative;
+      border-right: 1px solid var(--line);
+      min-height: 58vh;
+    }
+    .centerpiece .view-pane:last-child { border-right: none; }
+    .view-label {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 3;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding: 6px 10px;
+      background: rgba(12,10,8,0.72);
+      border: 1px solid var(--line);
+      color: var(--accent2);
+      pointer-events: none;
+    }
+    .placard {
+      background: var(--placard);
+      border-left: 1px solid var(--line);
+      padding: clamp(1.25rem, 3vw, 2rem);
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      justify-content: center;
+    }
+    .centerpiece .placard {
+      border-left: none;
+      border-top: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 1.5rem 2rem;
+      align-items: start;
+    }
+    .specimen-num {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin: 0;
+    }
+    .specimen-title {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: clamp(1.7rem, 3.6vw, 2.55rem);
+      letter-spacing: -0.035em;
+      line-height: 1.05;
+      margin: 0;
+    }
+    .lesson {
+      font-size: 14.5px;
+      color: var(--cream);
+      margin: 0;
+    }
+    .lesson p {
+      margin: 0 0 0.55rem;
+    }
+    .lesson p:last-child { margin-bottom: 0; }
+    .try {
+      border: 1px dashed rgba(200, 245, 66, 0.45);
+      background: rgba(200, 245, 66, 0.06);
+      padding: 0.85rem 1rem;
+    }
+    .try strong {
+      display: block;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      margin-bottom: 0.35rem;
+      font-weight: 700;
+    }
+    .try p { margin: 0; font-size: 14px; color: var(--paper); }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+    .chip {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.45rem 0.7rem;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--paper);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .chip:hover, .chip[aria-pressed="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0c0a08;
+    }
+    .ctrls {
+      display: grid;
+      gap: 0.65rem;
+    }
+    .ctrl {
+      display: grid;
+      grid-template-columns: 6.5rem 1fr 2.6rem;
+      gap: 0.55rem;
+      align-items: center;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--mute);
+    }
+    .ctrl input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      height: 1.4rem;
+    }
+    .ctrl output { text-align: right; color: var(--paper); }
+
+    /* —— Teachers —— */
+    .teachers {
+      border-top: 1px solid var(--line);
+      padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 4vw, 3rem);
+      background: #100e0b;
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: clamp(1.5rem, 4vw, 3rem);
+    }
+    .teachers h2 {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: clamp(2.1rem, 5.2vw, 3.5rem);
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin: 0 0 0.75rem;
+    }
+    .teachers .lede {
+      color: var(--mute);
+      max-width: 36ch;
+      margin: 0;
+    }
+    .teach-grid {
+      display: grid;
+      gap: 1rem;
+    }
+    .teach-card {
+      border: 1px solid var(--line);
+      padding: 1.1rem 1.2rem;
+      background: var(--card);
+    }
+    .teach-card h3 {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--steel);
+      margin: 0 0 0.6rem;
+      font-weight: 700;
+    }
+    .teach-card ul {
+      margin: 0;
+      padding-left: 1.1rem;
+      color: var(--cream);
+      font-size: 14.5px;
+    }
+    .teach-card li { margin-bottom: 0.35rem; }
+    .teach-card p { margin: 0; font-size: 14.5px; color: var(--cream); }
+    .map-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    .map-cols .teach-card { margin: 0; }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 1.25rem clamp(1.25rem, 4vw, 3rem) 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.5rem;
+      justify-content: space-between;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+    footer a { color: var(--paper); text-decoration: none; border-bottom: 1px solid var(--accent); }
+
+    .err {
+      position: fixed;
+      left: 12px; right: 12px; bottom: 12px;
+      z-index: 20;
+      background: #3a1212;
+      color: #ffd6d6;
+      padding: 12px 14px;
+      border-radius: 8px;
+      display: none;
+      white-space: pre-wrap;
+      font-family: var(--mono);
+      font-size: 12px;
+      pointer-events: none;
+    }
+
+    @media (max-width: 860px) {
+      .hero {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+      }
+      .hero h1 { max-width: none; }
+      .specimen, .centerpiece .placard, .teachers, .map-cols {
+        grid-template-columns: 1fr;
+      }
+      .placard { border-left: none; border-top: 1px solid var(--line); }
+      .centerpiece .views { grid-template-columns: 1fr; }
+      .centerpiece .view-pane { border-right: none; border-bottom: 1px solid var(--line); min-height: 42vh; }
+      .view, .view-wrap { min-height: 42vh; }
+      .specimen { min-height: auto; }
+    }
+  
+    .series-nav {
+      position: absolute;
+      top: clamp(1rem, 3vw, 1.75rem);
+      right: clamp(1rem, 3vw, 2rem);
+      z-index: 5;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .series-nav a {
+      color: var(--paper);
+      text-decoration: none;
+      border-bottom: 1px solid var(--accent);
+      pointer-events: auto;
+    }
+    .flat-uv {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      width: min(42%, 220px);
+      aspect-ratio: 1;
+      border: 1px solid var(--line);
+      background: #0a0908;
+      z-index: 3;
+      pointer-events: none;
+      display: none;
+    }
+    .flat-uv.show { display: block; }
+    .flat-uv canvas { width: 100%; height: 100%; display: block; }
+    .flat-uv label {
+      position: absolute;
+      top: 6px; left: 6px;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      background: rgba(12,10,8,0.75);
+      padding: 3px 6px;
+      border: 1px solid var(--line);
+    }
+
+
+    /* Series craft — Ruben-energy principles (not a copy) */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 50;
+      opacity: 0.045;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      mix-blend-mode: overlay;
+    }
+    .hero-kicker::before {
+      content: "";
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      margin-right: 0.55rem;
+      border-radius: 50%;
+      background: var(--accent2);
+      box-shadow: 0 0 10px var(--accent2);
+      vertical-align: 1px;
+    }
+    .chip {
+      border-radius: 999px !important;
+      padding: 0.5rem 0.95rem !important;
+      letter-spacing: 0.08em !important;
+      transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    }
+    .chip:hover {
+      transform: translateY(-1px);
+      border-color: var(--accent);
+    }
+    .chip:active { transform: translateY(0); }
+    .try {
+      border-radius: 14px;
+    }
+    .hero-diagram {
+      border-radius: 16px;
+    }
+    .teach-card {
+      border-radius: 14px;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .teach-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .series-nav a {
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      border-bottom: 1px solid var(--accent);
+      padding: 0.45rem 0.85rem;
+      transition: background 0.18s ease, color 0.18s ease;
+    }
+    .series-nav a:hover {
+      background: var(--accent);
+      color: #0a0a0a;
+      border-color: var(--accent);
+    }
+    .view-label {
+      border-radius: 999px;
+    }
+    .ctrl input[type="range"] {
+      height: 1.25rem;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .chip, .teach-card, .series-nav a { transition: none !important; }
+    }
+
+
+    .ticker {
+      position: relative;
+      z-index: 6;
+      overflow: hidden;
+      border-bottom: 1px solid var(--line);
+      background: #000;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      pointer-events: none;
+    }
+    .ticker-track {
+      display: flex;
+      width: max-content;
+      gap: 0;
+      animation: ticker-scroll 42s linear infinite;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      white-space: nowrap;
+    }
+    .ticker-track span { padding: 0 1.25rem; }
+    .ticker-track span::before {
+      content: "✦";
+      margin-right: 1.25rem;
+      color: var(--accent);
+      opacity: 0.7;
+    }
+    @keyframes ticker-scroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ticker-track { animation: none; }
+    }
+    .hero {
+      padding-top: clamp(1rem, 3vw, 2rem);
+      align-items: stretch !important;
+      grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.25fr) !important;
+      grid-template-rows: auto auto;
+      min-height: 0 !important;
+      overflow: visible;
+    }
+    .hero-copy {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding-bottom: 1rem;
+    }
+    .hero-copy .scroll-cue { margin-top: 1.75rem; }
+    .hero-stage {
+      position: relative;
+      min-height: min(76vh, 780px);
+      margin-right: clamp(-5rem, -6vw, -1.25rem);
+    }
+    .hero-stage .view[data-scene="hero"] {
+      position: absolute;
+      inset: 0;
+      width: auto;
+      height: auto;
+      touch-action: pan-y;
+      cursor: crosshair;
+    }
+    /* Glossary: a normal block in the flow, never over the hero */
+    .hero-gloss {
+      grid-column: 1 / -1;
+      position: relative;
+    }
+    .hero-gloss .diagram-rows {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      column-gap: 1.5rem;
+    }
+    .series-nav {
+      position: relative !important;
+      top: auto !important;
+      right: auto !important;
+      display: flex;
+      justify-content: flex-end;
+      padding: 0.9rem clamp(1.25rem, 4vw, 3rem) 0;
+    }
+    @media (max-width: 860px) {
+      .hero { grid-template-columns: 1fr !important; padding-top: 0.75rem; }
+      .hero-stage {
+        order: -1;
+        min-height: 46vh;
+        margin: 0 -1.25rem 0.5rem;
+      }
+      .hero-copy { padding-bottom: 0; }
+      .hero-gloss .diagram-rows { grid-template-columns: 1fr; }
+      .series-nav { padding-top: 0.75rem; }
+    }
+
+  
+    /* —— Lesson 06 craft: cut, sanded, polished —— */
+    .specimen-num {
+      display: inline-block;
+      border: 1.5px solid var(--accent);
+      color: var(--accent) !important;
+      padding: 0.2rem 0.55rem 0.15rem;
+      border-radius: 4px;
+      transform: rotate(-1.2deg);
+      box-shadow: 1px 1px 0 rgba(240, 138, 168, 0.25);
+    }
+    .try {
+      border: 1px solid var(--line);
+      border-top: 2px dashed rgba(240, 138, 168, 0.55);
+      background:
+        radial-gradient(rgba(244, 239, 230, 0.045) 1px, transparent 1.2px) 0 0 / 7px 7px,
+        #0f0d0a;
+    }
+    .teach-card {
+      background:
+        radial-gradient(rgba(244, 239, 230, 0.04) 1px, transparent 1.2px) 0 0 / 6px 6px,
+        var(--card);
+    }
+    .hero h1 em {
+      text-shadow: 2px 2px 0 rgba(215, 162, 108, 0.35);
+    }
+    .real-world {
+      border-top: 1px solid var(--line);
+      padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 4vw, 3rem);
+      scroll-margin-top: 1rem;
+    }
+    .rw-head { max-width: 62ch; margin-bottom: clamp(1.1rem, 3vw, 1.75rem); }
+    .rw-title {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: clamp(2.1rem, 5.2vw, 3.5rem);
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin: 0 0 0.75rem;
+    }
+    .rw-head .lede { color: var(--mute); margin: 0; max-width: 52ch; }
+    .rw-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.85rem;
+    }
+    @media (max-width: 1080px) { .rw-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 640px) { .rw-list { grid-template-columns: minmax(0, 1fr); } }
+    .rw-item {
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--accent);
+      border-radius: 14px;
+      padding: 1rem 1.1rem 1.1rem;
+      background: var(--card);
+      min-width: 0;
+    }
+    .rw-setting {
+      display: block;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--steel);
+      margin-bottom: 0.4rem;
+    }
+    .rw-job {
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: 1.12rem;
+      letter-spacing: -0.01em;
+      margin: 0 0 0.45rem;
+      color: var(--cream);
+    }
+    .rw-item p { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--cream); }
+    .hero h1 {
+      font-size: clamp(2.9rem, 7.6vw, 6rem) !important;
+      max-width: 12ch !important;
+      line-height: 0.92 !important;
+    }
+    .view[data-scene="noise"] { touch-action: pan-y; cursor: default; }
+    .view[data-scene="wood"] { touch-action: pan-y; cursor: default; }
+    .view-label.solid { color: var(--accent2); }
+    .view-label.painted { color: var(--accent); }
+    /* Phone held sideways: the screen is short, so give each specimen most of the height */
+    @media (orientation: landscape) and (max-height: 500px) {
+      .content .view:not([data-scene="hero"]), .content .view-wrap { min-height: 84vh; }
+      .centerpiece .views { grid-template-columns: 1fr 1fr; min-height: 84vh; }
+      .centerpiece .view-pane { min-height: 84vh; border-bottom: none; border-right: 1px solid var(--line); }
+      .centerpiece .view-pane:last-child { border-right: none; }
+    }
+    .uv-key {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem 1rem;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--mute);
+      margin: 0;
+    }
+    .uv-key b { color: var(--paper); font-weight: 500; }
+    /* Big touch targets for sliders on touch screens and narrow windows */
+    @media (pointer: coarse), (max-width: 700px) {
+      .ctrl { grid-template-columns: 5.6rem 1fr 2.8rem; }
+      .ctrl input[type="range"] { height: 44px !important; min-height: 44px; margin: 0; }
+      .chip { min-height: 44px; }
+    }
+
+    .uv-net {
+      position: absolute;
+      right: 0.75rem;
+      bottom: 0.75rem;
+      width: min(42%, 220px);
+      aspect-ratio: 1.4;
+      background: rgba(8,10,18,0.88);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0.45rem 0.55rem 0.35rem;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      z-index: 3;
+    }
+    .uv-net.on { opacity: 1; }
+    .uv-net svg { width: 100%; height: 100%; display: block; }
+    .uv-net .uv-net-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin: 0 0 0.25rem;
+    }
+    .view-wrap { position: relative; }
+    .texel-readout {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      color: var(--accent2);
+      margin: 0.4rem 0 0;
+    }
+    .texel-readout b { color: var(--paper); font-weight: 500; }
+
+    @media (orientation: landscape) and (max-height: 500px) {
+      .hero { min-height: 100vh; grid-template-columns: 1fr 1fr; align-items: center; }
+      .hero-stage { min-height: 78vh; }
+      .hero-stage .view[data-scene="hero"] { min-height: 78vh; }
+      .hero-diagram { display: none; } /* free vertical space for the form */
+    }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+
+<body>
+  <canvas id="c"></canvas>
+  <div class="err" id="err"></div>
+
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track">
+      <span>UV MAP</span><span>UNWRAP</span><span>ISLAND</span><span>SEAM</span><span>STRETCH</span><span>TEXEL DENSITY</span><span>CHECKER</span><span>TRIPLANAR</span><span>BLEND</span><span>PROJECTION</span><span>WRAP</span><span>CUT AND FLATTEN</span>
+      <span>UV MAP</span><span>UNWRAP</span><span>ISLAND</span><span>SEAM</span><span>STRETCH</span><span>TEXEL DENSITY</span><span>CHECKER</span><span>TRIPLANAR</span><span>BLEND</span><span>PROJECTION</span><span>WRAP</span><span>CUT AND FLATTEN</span>
+    </div>
+  </div>
+  <div class="content">
+    <nav class="series-nav" style="gap:0.45rem;flex-wrap:wrap">
+      <a href="https://how-surfaces-work-production.up.railway.app/">Lesson 01 · Surfaces</a>
+      <a href="https://how-textures-work-production.up.railway.app/">Lesson 02 · Textures</a>
+      <a href="https://how-surfaces-work-production.up.railway.app/sheen/">Lesson 03 · Soft</a>
+      <a href="https://how-textures-work-preview-production.up.railway.app/wear/">Lesson 04 · Wear</a>
+      <a href="https://how-surfaces-work-l05-preview-production.up.railway.app/fresnel/">Lesson 05 · Edges</a>
+      <a href="https://how-textures-work-l06-preview-production.up.railway.app/grain/">Lesson 06 · Grain</a>
+      <a href="https://how-surfaces-work-l07-preview-production.up.railway.app/refract/">Lesson 07 · Refract</a>
+    </nav>
+    <header class="hero" id="top">
+      <div class="hero-copy">
+        <p class="hero-kicker">Lesson 08 · Materials</p>
+        <h1>How <em>Maps</em> Wrap a Shape</h1>
+        <p class="hero-sub">A painted image is flat. A 3D model is not. UV maps cut and unfold the surface so the image can stick — and seams and stretch show where that unfold goes wrong.</p>
+        <div class="hero-meta">
+          <div>Time <span>20 min</span></div>
+          <div>You will learn <span>UVs, seams, stretch, and triplanar</span></div>
+          <div>Try first <span>drag across the form to see the checker under the dots</span></div>
+          <div>Core lesson <span>Cut flat, wrap back on</span></div>
+        </div>
+        <p class="scroll-cue"><a href="#s01">Enter the lab ↓</a></p>
+      </div>
+      <div class="hero-stage">
+        <div class="view" data-scene="hero" tabindex="0" aria-label="A 3D form with a checker map under a blue-violet dot mask. Drag across it to reveal the real map."></div>
+      </div>
+      <div class="hero-diagram hero-gloss" aria-label="Lesson map">
+        <h2>What you will see</h2>
+        <div class="diagram-rows">
+          <div><b>UV map</b><span>A 2D layout of the surface, cut and flattened into the unit square.</span></div>
+          <div><b>Seam</b><span>Where cut edges of the unwrap meet again on the model.</span></div>
+          <div><b>Stretch</b><span>When UV islands are too big or too small for the surface.</span></div>
+          <div><b>Island</b><span>One connected piece of the unwrap in UV space.</span></div>
+          <div><b>Texel density</b><span>How many texture pixels cover each unit of surface.</span></div>
+          <div><b>Triplanar</b><span>Projecting the same image from X, Y, and Z, then blending.</span></div>
+        </div>
+      </div>
+    </header>
+
+    <section class="specimen" id="s01">
+      <div class="view-wrap">
+        <div class="view" data-scene="uv" tabindex="0" aria-label="A cylinder with a checker map. Switch between good UVs, stretched UVs, and a highlighted seam."></div>
+        <div class="uv-net" id="uv-net" aria-hidden="true">
+          <p class="uv-net-label">UV net · cylinder</p>
+          <svg viewBox="0 0 140 100" role="img" aria-label="Flat unwrap of a cylinder as a rectangle">
+            <rect x="8" y="18" width="124" height="64" fill="none" stroke="#7b8cff" stroke-width="1.5"/>
+            <g stroke="#7b8cff" stroke-width="0.6" opacity="0.55">
+              <line x1="8" y1="34" x2="132" y2="34"/><line x1="8" y1="50" x2="132" y2="50"/><line x1="8" y1="66" x2="132" y2="66"/>
+              <line x1="39" y1="18" x2="39" y2="82"/><line x1="70" y1="18" x2="70" y2="82"/><line x1="101" y1="18" x2="101" y2="82"/>
+            </g>
+            <line id="uv-net-seam" x1="8" y1="18" x2="8" y2="82" stroke="#c6e05a" stroke-width="2.5"/>
+            <text x="70" y="12" text-anchor="middle" fill="#a8b4d8" font-size="7" font-family="JetBrains Mono, monospace">U →</text>
+            <text x="4" y="52" fill="#a8b4d8" font-size="7" font-family="JetBrains Mono, monospace" transform="rotate(-90 4 52)">V</text>
+          </svg>
+        </div>
+      </div>
+      <aside class="placard">
+        <p class="specimen-num">Specimen 01 — UV maps</p>
+        <h2 class="specimen-title">Cut flat, wrap back on</h2>
+        <div class="lesson">
+          <p>A painted image lives on a flat square. A cylinder is a curved surface. To stick the image on, you cut the surface and unfold it into that square. That unfold is the UV map.</p>
+          <p>Good UVs keep squares looking square on the model. Stretched UVs make the checker look pulled or cramped.</p>
+          <p>A seam is where the cut edges meet again. On a cylinder the seam is a vertical line. If the pattern does not match across it, you see a break.</p>
+        </div>
+        <div class="try">
+          <strong>Try this</strong>
+          <p>Press Good UVs and look at the checker. Then press Stretched and watch the squares pull. Press Show seam to mark the cut. Turn on Show UV net to see the flat rectangle that wraps this cylinder.</p>
+        </div>
+        <div class="chips" role="group" aria-label="UV quality">
+          <button type="button" class="chip" data-uv="good" aria-pressed="true">Good UVs</button>
+          <button type="button" class="chip" data-uv="stretch" aria-pressed="false">Stretched</button>
+          <button type="button" class="chip" data-uv="seam" aria-pressed="false">Show seam</button>
+          <button type="button" class="chip" data-uv="net" aria-pressed="false">Show UV net</button>
+        </div>
+      </aside>
+    </section>
+
+    <section class="specimen" id="s02">
+      <div class="view-wrap">
+        <div class="view" data-scene="seam" tabindex="0" aria-label="A cylinder with stripes. Move the seam slider to misalign the pattern across the cut."></div>
+      </div>
+      <aside class="placard">
+        <p class="specimen-num">Specimen 02 — Seams</p>
+        <h2 class="specimen-title">Where the cut meets again</h2>
+        <div class="lesson">
+          <p>When you unfold a surface, you cut it. On the model those cut edges sit next to each other again. That join is the seam.</p>
+          <p>If the colors on each side of the seam do not line up, the pattern breaks. Artists hide seams in places that are hard to see, or they paint across the join so the break disappears.</p>
+          <p>Here the stripes should continue around the cylinder. Move the seam offset and you make the break yourself.</p>
+        </div>
+        <div class="try">
+          <strong>Try this</strong>
+          <p>Set Seam offset to 0. The stripes meet cleanly. Raise it until you see a clear break. Then bring it back to 0 to fix the join.</p>
+        </div>
+        <div class="ctrls">
+          <label class="ctrl">Seam offset
+            <input id="seam-off" type="range" min="0" max="1" step="0.01" value="0" />
+            <output id="seam-off-out" for="seam-off">0.00</output>
+          </label>
+        </div>
+      </aside>
+    </section>
+
+    <section class="specimen centerpiece" id="s03">
+      <div class="views">
+        <div class="view-pane">
+          <div class="view-label solid">UV map · needs unwrap</div>
+          <div class="view" data-scene="trip-uv" tabindex="0" aria-label="A rock with a UV-mapped checker. Drag to turn."></div>
+        </div>
+        <div class="view-pane">
+          <div class="view-label painted">Triplanar · no UVs</div>
+          <div class="view" data-scene="trip-tri" tabindex="0" aria-label="The same rock with triplanar projection. Drag to turn."></div>
+        </div>
+      </div>
+      <aside class="placard">
+        <div>
+          <p class="specimen-num">Specimen 03 — Triplanar</p>
+          <h2 class="specimen-title">Project from three sides</h2>
+          <div class="lesson">
+            <p>Left: the rock uses a UV unwrap. Complex shapes need careful cuts, and bad UVs leave stretch or seams.</p>
+            <p>Right: triplanar mapping projects the same image from the X, Y, and Z axes, then blends the three results by the surface normal. It needs no UV map.</p>
+            <p>Triplanar hides seams on rocks, terrain, and modular pieces. On sharp corners the blend can look soft or blurred. Blend sharpness controls how quickly one projection wins over the others.</p>
+          </div>
+        </div>
+        <div>
+          <div class="try">
+            <strong>Try this</strong>
+            <p>Turn both rocks. Look for stretch or a seam on the left. On the right, lower Blend sharpness until the corners look smeared, then raise it until the faces look crisp.</p>
+          </div>
+          <div class="chips" role="group" aria-label="Triplanar toggles">
+            <button type="button" class="chip" data-trip="on" aria-pressed="true">Triplanar on</button>
+            <button type="button" class="chip" data-trip="spin" aria-pressed="true">Turntable</button>
+          </div>
+          <div class="ctrls" style="margin-top:1rem">
+            <label class="ctrl">Blend sharpness
+              <input id="trip-sharp" type="range" min="1" max="12" step="0.1" value="4" />
+              <output id="trip-sharp-out" for="trip-sharp">4.0</output>
+            </label>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="specimen" id="s04">
+      <div class="view-wrap">
+        <div class="view" data-scene="texel" tabindex="0" aria-label="A crate with a checker map. Scale the UVs to change texel density."></div>
+      </div>
+      <aside class="placard">
+        <p class="specimen-num">Specimen 04 — Texel density</p>
+        <h2 class="specimen-title">How many pixels per unit</h2>
+        <div class="lesson">
+          <p>Texel density is how many texture pixels cover each unit of surface. If the UV island is too small, the checker looks large and soft. If it is too big, the checker looks fine, but you waste texture space.</p>
+          <p>Film and game teams match texel density across props so a close-up does not look blurrier than the rest of the shot.</p>
+        </div>
+        <div class="try">
+          <strong>Try this</strong>
+          <p>Move UV scale down until the checker looks soft and blocky. Then raise it until the squares look sharp. Watch the texels-per-unit number change.</p>
+        </div>
+        <div class="ctrls">
+          <label class="ctrl">UV scale
+            <input id="texel-scale" type="range" min="0.25" max="4" step="0.05" value="1" />
+            <output id="texel-scale-out" for="texel-scale">1.00</output>
+          </label>
+        </div>
+        <p class="texel-readout">Texels per unit · <b id="texel-ppu">64</b></p>
+      </aside>
+    </section>
+
+    <section class="real-world" id="real-world" aria-labelledby="rw-title">
+      <div class="rw-head">
+        <h2 class="rw-title" id="rw-title">Where you see this</h2>
+        <p class="lede">People who paint maps, build materials, and dress large worlds use UVs and triplanar projection every day.</p>
+      </div>
+      <ul class="rw-list">
+        <li class="rw-item">
+          <span class="rw-setting">Character and prop art</span>
+          <h3 class="rw-job">Texture artist</h3>
+          <p>A texture artist lays out UV islands for characters and props so painted detail lands where it should. They hide seams under clothing or along hard edges, and they keep island scale even so a face does not look blurrier than a boot.</p>
+        </li>
+        <li class="rw-item">
+          <span class="rw-setting">Games and real-time worlds</span>
+          <h3 class="rw-job">Technical artist</h3>
+          <p>A technical artist builds triplanar materials for terrain and modular kits. Rocks and walls can share one material without a unique unwrap on every piece, which saves layout time and keeps seams from showing on kit-bashed sets.</p>
+        </li>
+        <li class="rw-item">
+          <span class="rw-setting">Open-world environments</span>
+          <h3 class="rw-job">Environment artist</h3>
+          <p>An environment artist covers large worlds with rock, dirt, and moss. Triplanar and world-space projection let them dress cliffs and rubble without painting unique UVs for every boulder, while still matching the look of hand-unwrapped hero props nearby.</p>
+        </li>
+        <li class="rw-item">
+          <span class="rw-setting">Film look development</span>
+          <h3 class="rw-job">Look-dev artist</h3>
+          <p>A look-dev artist checks texel density and seam placement in close-ups. If a hero prop sits nearer the camera than the set around it, they raise its UV scale or texture resolution so the grain and print stay sharp when the lens moves in.</p>
+        </li>
+        <li class="rw-item">
+          <span class="rw-setting">Product and packaging</span>
+          <h3 class="rw-job">Product visualization artist</h3>
+          <p>A product visualization artist unwraps packaging and labels so logos and small text stay readable on bottles, boxes, and cans. Straight type needs undistorted UVs; a stretched island would pull the letters and make the brand look wrong.</p>
+        </li>
+      </ul>
+    </section>
+
+    <section class="teachers" id="teachers">
+      <div>
+        <h2>For teachers</h2>
+        <p class="lede">Short objectives, one classroom loop, and how the lab maps to studio practice and spatial reasoning.</p>
+      </div>
+      <div class="teach-grid">
+        <div class="teach-card">
+          <h3>Learning objectives</h3>
+          <ul>
+            <li>Explain why a flat image needs a UV unwrap to stick to a 3D surface.</li>
+            <li>Identify a seam and describe how a misaligned pattern creates a visible break.</li>
+            <li>Describe stretch as UV islands that are too large or too small for the surface.</li>
+            <li>Explain how triplanar projection blends X, Y, and Z projections without UVs, and name one trade-off.</li>
+            <li>Relate texel density to how sharp a map looks on a given surface size.</li>
+          </ul>
+        </div>
+        <div class="teach-card">
+          <h3>10-minute classroom activity</h3>
+          <p>1) Hand out a paper label and a cardboard tube. 2) Students wrap the label, mark the join, and unfold it flat — that flat is a UV net. 3) On Specimen 02 they misalign the seam, then fix it. 4) On Specimen 03 they write one sentence on when they would choose triplanar over a hand unwrap.</p>
+        </div>
+        <div class="map-cols">
+          <div class="teach-card">
+            <h3>Art &amp; design map</h3>
+            <p>Character and prop UV layout, texel-density matching across a set, triplanar materials for terrain and modular kits, packaging unwraps for readable labels, seam placement for film close-ups.</p>
+          </div>
+          <div class="teach-card">
+            <h3>Science map</h3>
+            <p>Developable surfaces and cuts, area distortion under flattening, normal-weighted blends, sampling density (pixels per unit length), and projection from orthogonal axes.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div>How Maps Wrap a Shape · Lesson 08 · Materials · <a href="https://how-surfaces-work-production.up.railway.app/">Lesson 01</a> · <a href="https://how-textures-work-production.up.railway.app/">Lesson 02</a> · <a href="https://how-surfaces-work-production.up.railway.app/sheen/">Lesson 03</a> · <a href="https://how-textures-work-preview-production.up.railway.app/wear/">Lesson 04</a> · <a href="https://how-surfaces-work-l05-preview-production.up.railway.app/fresnel/">Lesson 05</a> · <a href="https://how-textures-work-l06-preview-production.up.railway.app/grain/">Lesson 06</a> · <a href="https://how-surfaces-work-l07-preview-production.up.railway.app/refract/">Lesson 07</a></div>
+      <div><a href="#top">Back to top</a></div>
+    </footer>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

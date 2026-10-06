@@ -45,3 +45,23 @@ These used to appear as on-page copy. The page now speaks only to students and t
 - **QA hooks:** `window.__HSW` (and `window.__HTW` on Textures) exposes renderer, scenes, shared state, frameCount, heroPost, and webglContexts() for `qa.mjs` (Playwright). Run it with `HSW_URL=<url> node qa.mjs`. It checks a single canvas, a non-blank hero, specimen rendering, controls, scissor alignment, anchors, fonts, offscreen skip, reduced motion, and visibility.
 - **Hosting:** Railway (Caddy static Dockerfile + Caddyfile + railway.toml), project `how-surfaces-work`.
 - **Workflow (from now on):** new lesson work goes on a branch with a GitHub PR and a separate preview deploy, not straight to `main`/production.
+
+## Lesson 08 · How Maps Wrap a Shape (`/uv/`)
+
+Branch `lesson-08-uv`. Accent soft indigo `#7b8cff` (chartreuse `#c6e05a` secondary).
+
+### Specimens
+1. **UV maps** — cylinder with canvas checker; Good / Stretched / Show seam chips; Show UV net (DOM/SVG).
+2. **Seams** — stripe cylinder; Seam offset slider misaligns the pattern across the cut (GLSL).
+3. **Triplanar** — side-by-side rock (icosahedron with cheap displacement): UV-mapped vs triplanar (`onBeforeCompile` blends XYZ projections by `pow(|n|, sharp)`). Blend sharpness + Triplanar on/off.
+4. **Texel density** — rounded crate; UV scale slider; live texels-per-unit readout (`basePPU * scale`).
+
+### Tech notes
+- One shared WebGL canvas `#c`, scissor regions, DPR cap 1.5 mobile / 2 desktop, skip offscreen, pause when hidden.
+- Reduced-motion live listener; hero v3 (dot mask on alpha, lens, auto-fit).
+- ACES + sRGB + RoomEnvironment. Checker/stripe/rock maps are canvas-generated (no external images).
+- Phones: lower rock tessellation (`rockGeometry(1)`).
+- QA: `qa-uv.mjs` (Playwright 1.63 in `/workspace/materials-demo`).
+
+### Preview
+Railway service `how-textures-work-l08-preview` tracking `lesson-08-uv`.
