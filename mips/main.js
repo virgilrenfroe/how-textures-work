@@ -377,7 +377,7 @@ const anisoScene = makeScene(anisoEl, { camZ: 2.5, camY: 0.8 });
 addStudioLights(anisoScene, 1.15);
 {
   const tex = cloneTexSettings(baseTex);
-  tex.repeat.set(8, 48); // long road
+  tex.repeat.set(16, 80); // long road, denser so aniso reads clearly
   tex.generateMipmaps = true;
   tex.minFilter = THREE.LinearMipmapLinearFilter;
   tex.magFilter = THREE.LinearFilter;
@@ -393,8 +393,8 @@ addStudioLights(anisoScene, 1.15);
     const cam = anisoScene.userData.camera;
     const ctl = anisoScene.userData.controls;
     // Grazing look-down a long plane
-    const h = 0.35 + t * 1.6;
-    const z = 4.5 - t * 1.5;
+    const h = 0.22 + t * 1.4;
+    const z = 5.2 - t * 1.2;
     cam.position.set(0, h, z);
     ctl.target.set(0, 0, -18);
     ctl.update();

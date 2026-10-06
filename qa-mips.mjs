@@ -356,8 +356,16 @@ async function runSuite(browserType, label, ctxOpts) {
   await clickChip(page, '[data-mips="force"]'); // force off
   await ctrlTest(page, label, 'mips-distance', 'mips', () => setRange(page, '#mips-dist', 0.15));
   await setRange(page, '#mips-dist', 0.55);
-  await ctrlTest(page, label, 'aniso-1x', 'aniso', () => clickChip(page, '[data-aniso="1"]'));
-  await ctrlTest(page, label, 'aniso-8x', 'aniso', () => clickChip(page, '[data-aniso="8"]'));
+  await ctrlTest(page, label, 'aniso-1x', 'aniso', () => clickChip(page, '[data-aniso="1"]'), 0.4);
+  {
+    const v = await page.evaluate(() => window.__HTW.shared.aniso);
+    record(`${label}:aniso-shared-1`, v === 1, `aniso=${v}`);
+  }
+  await ctrlTest(page, label, 'aniso-8x', 'aniso', () => clickChip(page, '[data-aniso="8"]'), 0.4);
+  {
+    const info = await page.evaluate(() => ({ v: window.__HTW.shared.aniso, max: window.__HTW.maxAniso }));
+    record(`${label}:aniso-shared-8`, info.v >= Math.min(8, info.max), `aniso=${info.v} max=${info.max}`);
+  }
   await ctrlTest(page, label, 'aniso-pitch', 'aniso', () => setRange(page, '#aniso-pitch', 0.1));
   await setRange(page, '#aniso-pitch', 0.55);
   await ctrlTest(page, label, 'combo-distance', 'combo', () => setRange(page, '#combo-dist', 0.2));
