@@ -45,3 +45,22 @@ These used to appear as on-page copy. The page now speaks only to students and t
 - **QA hooks:** `window.__HSW` (and `window.__HTW` on Textures) exposes renderer, scenes, shared state, frameCount, heroPost, and webglContexts() for `qa.mjs` (Playwright). Run it with `HSW_URL=<url> node qa.mjs`. It checks a single canvas, a non-blank hero, specimen rendering, controls, scissor alignment, anchors, fonts, offscreen skip, reduced motion, and visibility.
 - **Hosting:** Railway (Caddy static Dockerfile + Caddyfile + railway.toml), project `how-surfaces-work`.
 - **Workflow (from now on):** new lesson work goes on a branch with a GitHub PR and a separate preview deploy, not straight to `main`/production.
+
+## Lesson 10 · How Detail Holds Up Close (`/mips/`)
+
+Branch `lesson-10-mips`. Accent signal amber `#ffb020` (sky `#7ec8e3` secondary).
+
+### Specimens
+1. **Filtering** — herringbone floor; Nearest vs Linear; Distance slider (mips off so filtering is clear).
+2. **Smaller copies** — Mipmaps on/off; Forced level 0–4 via `textureLod`; Distance; SVG mip pyramid highlights the active level.
+3. **Anisotropy** — long plane at grazing angle; 1× vs 8× (`texture.anisotropy`, capped by `renderer.capabilities.getMaxAnisotropy()`); Look-down slider.
+4. **Side by side** — same distance, copies off vs on in one scene.
+
+### Tech notes
+- Canvas-generated high-frequency DataTexture (no CDN images). `generateMipmaps`, `minFilter` / `magFilter`, anisotropy.
+- Forced mip level: `MeshStandardMaterial.onBeforeCompile` swaps `texture2D` for `textureLod(map, uv, uLevel)`.
+- Series hero v3, one scissor canvas, DPR caps, reduced-motion sync, ACES+sRGB+RoomEnvironment.
+- QA: `qa-mips.mjs`.
+
+### Preview
+Railway service `how-textures-work-l10-preview` tracking `lesson-10-mips`.
