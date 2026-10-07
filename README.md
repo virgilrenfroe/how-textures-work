@@ -4,6 +4,8 @@ A materials lab on UV maps, albedo, roughness, normal vs displacement, and weath
 
 Companion to [How Surfaces Work](https://how-surfaces-work-production.up.railway.app/).
 
+The live lesson states a short definition before the lab view, then “Where you see this” (five jobs) and a short FAQ, all in static HTML.
+
 **Live preview:** https://how-textures-work-production.up.railway.app/
 
 Repo: https://github.com/virgilrenfroe/how-textures-work
