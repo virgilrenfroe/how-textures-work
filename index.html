@@ -333,6 +333,123 @@
     }
     .ctrl output { text-align: right; color: var(--paper); }
 
+    /* —— Where you see this (real-world jobs) —— */
+    .real-world {
+      border-top: 1px solid var(--line);
+      padding: clamp(2.25rem, 5.5vw, 4.5rem) clamp(1.25rem, 4vw, 3rem);
+      background: #0c0b09;
+      display: grid;
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+      gap: clamp(1.75rem, 4vw, 3.5rem);
+      align-items: start;
+    }
+    .real-world h2,
+    .faq h2 {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: clamp(2.1rem, 5.2vw, 3.5rem);
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin: 0 0 0.85rem;
+      max-width: 12ch;
+    }
+    .real-world .lede,
+    .faq .lede {
+      color: var(--mute);
+      max-width: 34ch;
+      margin: 0;
+      font-size: 15.5px;
+    }
+    .real-world-kicker,
+    .faq-kicker {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin: 0 0 0.75rem;
+    }
+    .real-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 0;
+    }
+    .real-list > li {
+      display: grid;
+      grid-template-columns: 2.4rem minmax(0, 1fr);
+      gap: 0.85rem 1rem;
+      padding: 1.15rem 0 1.25rem;
+      border-top: 1px solid var(--line);
+    }
+    .real-list > li:last-child { border-bottom: 1px solid var(--line); }
+    .real-list .n {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      padding-top: 0.2rem;
+    }
+    .real-list h3 {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: clamp(1.15rem, 2.4vw, 1.45rem);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin: 0 0 0.35rem;
+      color: var(--paper);
+    }
+    .real-list .job {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--steel);
+      margin: 0 0 0.55rem;
+    }
+    .real-list p {
+      margin: 0;
+      color: var(--cream);
+      font-size: 15px;
+      max-width: 58ch;
+    }
+
+    /* —— Common mistakes / FAQ —— */
+    .faq {
+      border-top: 1px solid var(--line);
+      padding: clamp(2.25rem, 5.5vw, 4.5rem) clamp(1.25rem, 4vw, 3rem);
+      background: #14110e;
+      display: grid;
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+      gap: clamp(1.75rem, 4vw, 3.5rem);
+      align-items: start;
+    }
+    .faq-list {
+      margin: 0;
+      padding: 0;
+    }
+    .faq-item {
+      margin: 0;
+      padding: 1.05rem 0 1.15rem;
+      border-top: 1px solid var(--line);
+    }
+    .faq-item:last-child { border-bottom: 1px solid var(--line); }
+    .faq-item dt {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: clamp(1.15rem, 2.4vw, 1.4rem);
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+      color: var(--paper);
+    }
+    .faq-item dd {
+      margin: 0.45rem 0 0;
+      color: var(--cream);
+      font-size: 15px;
+      max-width: 62ch;
+    }
+
     /* —— Teachers —— */
     .teachers {
       border-top: 1px solid var(--line);
@@ -426,9 +543,11 @@
         padding-bottom: 2rem;
       }
       .hero h1 { max-width: none; }
-      .specimen, .centerpiece .placard, .teachers, .map-cols {
+      .specimen, .centerpiece .placard, .teachers, .map-cols, .real-world, .faq {
         grid-template-columns: 1fr;
       }
+      .real-world, .faq { gap: 1.5rem; }
+      .real-list > li { grid-template-columns: 2rem minmax(0, 1fr); }
       .placard { border-left: none; border-top: 1px solid var(--line); }
       .centerpiece .views { grid-template-columns: 1fr; }
       .centerpiece .view-pane { border-right: none; border-bottom: 1px solid var(--line); min-height: 42vh; }
@@ -602,6 +721,38 @@
       padding-bottom: 1rem;
     }
     .hero-copy .scroll-cue { margin-top: 1.75rem; }
+    .hero-def {
+      margin: 0 0 1.35rem;
+      max-width: 42rem;
+      padding: 0.9rem 1rem 1rem;
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--accent);
+      border-radius: 14px;
+      background: rgba(14, 14, 14, 0.82);
+    }
+    .hero-def-kicker {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin: 0 0 0.35rem;
+    }
+    .hero-def h2 {
+      font-family: var(--display);
+      font-weight: 500;
+      font-size: clamp(1.35rem, 2.4vw, 1.7rem);
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin: 0 0 0.55rem;
+    }
+    .hero-def p {
+      margin: 0 0 0.45rem;
+      color: var(--cream);
+      font-size: 15.5px;
+      max-width: 62ch;
+    }
+    .hero-def p:last-child { margin-bottom: 0; }
     .hero-stage {
       position: relative;
       min-height: min(76vh, 780px);
@@ -680,6 +831,14 @@
         <p class="hero-kicker">Lesson 02 · Materials</p>
         <h1>How <em>Textures</em> Work</h1>
         <p class="hero-sub">A materials lab on UV maps, color, roughness, fake bumps, and weathering. Same shape. Maps layered one at a time.</p>
+        <div class="hero-def">
+          <p class="hero-def-kicker">Definition</p>
+          <h2 id="in-short">In short</h2>
+          <p>Texture maps are flat images that wrap a 3D shape through UV coordinates.</p>
+          <p>Albedo is the color, and roughness is how the shine changes across the surface.</p>
+          <p>A normal map fakes bumps, and displacement moves the vertices.</p>
+          <p>A weathering mask ages a surface.</p>
+        </div>
         <div class="hero-meta">
           <div>Time <span>20 min</span></div>
           <div>You will learn <span>how flat images add color, bumps, and rust</span></div>
@@ -823,6 +982,56 @@
       </aside>
     </section>
 
+    <section class="real-world" id="real-world" aria-labelledby="real-world-title">
+      <div>
+        <p class="real-world-kicker">In the world</p>
+        <h2 id="real-world-title">Where you see this</h2>
+        <p class="lede">These maps are not only for the lab. Named jobs use the same images on games, film, products, cars, and buildings.</p>
+      </div>
+      <ol class="real-list">
+        <li>
+          <span class="n" aria-hidden="true">01</span>
+          <div>
+            <h3>Games</h3>
+            <p class="job">Texture artist</p>
+            <p>A texture artist paints color, roughness, and normal maps through UVs. Normal maps show stitches and scratches without extra geometry.</p>
+          </div>
+        </li>
+        <li>
+          <span class="n" aria-hidden="true">02</span>
+          <div>
+            <h3>Film and animation</h3>
+            <p class="job">Look-development artist</p>
+            <p>A look-development artist uses roughness maps for shiny and dull areas. Displacement makes true bump shadows in close-ups.</p>
+          </div>
+        </li>
+        <li>
+          <span class="n" aria-hidden="true">03</span>
+          <div>
+            <h3>Online stores</h3>
+            <p class="job">3D product visualization artist</p>
+            <p>A 3D product visualization artist keeps color and roughness separate. Matte labels, glossy caps, and brushed metal each catch light correctly.</p>
+          </div>
+        </li>
+        <li>
+          <span class="n" aria-hidden="true">04</span>
+          <div>
+            <h3>Car paint and fabric</h3>
+            <p class="job">Automotive visualization artist</p>
+            <p>An automotive visualization artist uses normal and bump maps for weave and leather grain. Roughness sets how sharp the paint reflection is.</p>
+          </div>
+        </li>
+        <li>
+          <span class="n" aria-hidden="true">05</span>
+          <div>
+            <h3>Architecture</h3>
+            <p class="job">Architectural visualization artist</p>
+            <p>An architectural visualization artist uses height and normal maps for brick, stone, and wood. Weathering masks add stains so designs do not look fake-new.</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
     <section class="teachers" id="teachers">
       <div>
         <h2>For teachers</h2>
@@ -853,6 +1062,36 @@
           </div>
         </div>
       </div>
+    </section>
+
+    <section class="faq" id="faq" aria-labelledby="faq-title">
+      <div>
+        <p class="faq-kicker">FAQ</p>
+        <h2 id="faq-title">Common mistakes</h2>
+        <p class="lede">Short answers to questions students ask after the specimens.</p>
+      </div>
+      <dl class="faq-list">
+        <div class="faq-item">
+          <dt>Is a normal map the same as displacement?</dt>
+          <dd>No. A normal map only bends the light. The mesh stays smooth. Displacement moves the vertices, so the outline can change.</dd>
+        </div>
+        <div class="faq-item">
+          <dt>Does albedo include lighting?</dt>
+          <dd>No. Albedo is the surface color alone. It does not store light, shadow, or shine.</dd>
+        </div>
+        <div class="faq-item">
+          <dt>What are UVs for?</dt>
+          <dd>UVs tell each point on a 3D shape which pixel of a flat image to use. That is how a texture wraps the object.</dd>
+        </div>
+        <div class="faq-item">
+          <dt>Why separate roughness from color?</dt>
+          <dd>Color and shine do different jobs. A dark label can be matte, and a pale cap can be glossy. Separate maps let each part catch light in its own way.</dd>
+        </div>
+        <div class="faq-item">
+          <dt>Does a weathering mask only change color?</dt>
+          <dd>No. The mask picks where age shows. Color, roughness, and metalness can change together.</dd>
+        </div>
+      </dl>
     </section>
 
     <footer>
